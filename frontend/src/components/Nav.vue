@@ -20,7 +20,7 @@
 #nav {
   padding: 10px;
   font-size:0.8em;
-  background-color:grey;
+  background-color:rgb(175,175,177);
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -30,11 +30,12 @@ img {
     }
                             
   a {
-    color: white;
+    color: rgb(83,83,83);
     text-decoration:none;
     
     &.router-link-exact-active {
-      color: blue;
+      text-decoration:underline;
+      color:white;
     }
   }
 }

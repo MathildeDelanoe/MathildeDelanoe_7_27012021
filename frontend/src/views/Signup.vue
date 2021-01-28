@@ -1,5 +1,18 @@
+<script>
+import Nav from '../components/Nav.vue'
+
+export default {
+  name: 'Signup',
+  components: {
+    Nav
+  }
+}
+</script>
+
+
 <template>
-  <div class="signup">
-    <h1>Signup page</h1>
-  </div>
+  <body class="signup">
+    <Nav />
+
+  </body>
 </template>

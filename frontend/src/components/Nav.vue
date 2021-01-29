@@ -3,7 +3,7 @@
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div>
       <router-link to="/signup">S'inscrire</router-link> |
-      <router-link to="/login">Se connecter</router-link>
+      <router-link to="/">Se connecter</router-link>
     </div>
   </div>
 </template>

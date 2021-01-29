@@ -27,6 +27,9 @@ export default {
           <tr>
             <td colspan="2"><input type="submit" id="submitButton" value="Se connecter"></td>
           </tr>
+          <tr>
+            <td colspan="2"><span>Pas de compte? <router-link to="/signup">S'inscrire</router-link></span></td>
+          </tr>
       </tbody>
   </table>
 
@@ -49,7 +52,6 @@ export default {
       padding-bottom:20px;
     }
 
-
     #submitButton
     {
       padding:5px 15px 5px 15px;
@@ -57,6 +59,21 @@ export default {
       margin:auto;
       display:block;
     }
+
+    span
+    {
+      font-size:0.7em;
+      color:white;
+      display:block;
+      text-align:right;
+    }
+
+    a
+    {
+      font-size:1em;
+      color:white;
+    }
+
   }
 
 </style>

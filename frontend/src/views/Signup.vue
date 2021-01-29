@@ -41,7 +41,7 @@ export default {
             <td><input type="password" id="confirmpasswordSignup" required></td>
           </tr>
           <tr>
-            <td colspan="2"><input type="submit" id="submitButton" value="S'inscrire" ></td>
+            <td colspan="2"><input type="submit" id="submitButton" value="S'inscrire" disabled></td>
           </tr>
       </tbody>
   </table>

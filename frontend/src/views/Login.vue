@@ -2,7 +2,7 @@
 import Nav from '../components/Nav.vue'
 
 export default {
-  name: 'Login',
+  name: 'login',
   components: {
     Nav
   }
@@ -25,7 +25,7 @@ export default {
             <td><input type="password" id="passwordLogin" required></td>
           </tr>
           <tr>
-            <td colspan="2"><input type="submit" id="submitButton" value="Se connecter"></td>
+            <td colspan="2"><input type="submit" id="submitButton" value="Se connecter" disabled></td>
           </tr>
           <tr>
             <td colspan="2"><span>Pas de compte? <router-link to="/signup">S'inscrire</router-link></span></td>

@@ -6,19 +6,19 @@
       <tbody class="text-right">
           <tr>
             <td><label for="lastName">Nom : </label></td>
-            <td><input type="text" id="lastName" required v-model="lastName"></td>
+            <td><input type="text" id="lastName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="lastName"></td>
           </tr>
           <tr>
             <td><label for="firstName">Prénom : </label></td>
-            <td><input type="text" id="firstName" required v-model="firstName"></td>
+            <td><input type="text" id="firstName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="firstName"></td>
           </tr>
           <tr>
             <td><label for="job">Poste occupé : </label></td>
-            <td><input type="text" id="job" required v-model="job"></td>
+            <td><input type="text" id="job" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="job"></td>
           </tr>
           <tr>
             <td><label for="emailSignup">Adresse e-mail : </label></td>
-            <td><input type="text" id="emailSignup" required v-model="email"></td>
+            <td><input type="email" id="emailSignup" pattern="[A-Za-zÀ-ÖØ-öø-ÿ-.'_0-9]{0,30}@groupomania.com" required v-model="email"></td>
           </tr>
           <tr>
             <td><label for="passwordSignup" class="my-4 mr-3">Mot de passe : </label></td>

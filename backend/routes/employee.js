@@ -1,9 +1,10 @@
 // Importation des dépendances
 const express = require('express');
 const router = express.Router();
+const employeeCtrl = require('../controllers/employee');
 
 // Création des routes
-// router.post('/signup', userCtrl.signup);
+router.post('/signup', employeeCtrl.signup);
 // router.post('/login', userCtrl.login);
 
 // Exportation du router et de ses différentes routes

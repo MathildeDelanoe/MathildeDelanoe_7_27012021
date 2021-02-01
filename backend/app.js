@@ -7,7 +7,7 @@ const helmet = require("helmet");
 require('dotenv').config();
 
 // Importation des routeurs
-// const employeeRoutes = require('./routes/employee');
+const employeeRoutes = require('./routes/employee');
 
 
 // Connexion à une base de données mysql
@@ -50,7 +50,7 @@ app.use(bodyParser.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Enregistrement des routes
-// app.use('/api/auth', userRoutes);
+app.use('/api/employee', employeeRoutes);
 
 //exporter cette application
 module.exports = app;

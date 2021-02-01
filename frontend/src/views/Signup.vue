@@ -2,7 +2,13 @@
   <body class="signup">
     <Nav />
 
-   <table>
+    <div v-if="formErrors.length != 0">
+      <p>Le formulaire contient des erreurs, veuillez les corriger pour pouvoir vous inscrire:</p>
+      <ul>
+        <li v-for="error in formErrors" :key="error">{{ error }}</li>
+      </ul>
+    </div>
+    <table>
       <tbody class="text-right">
           <tr>
             <td><label for="lastName">Nom : </label></td>
@@ -14,25 +20,25 @@
           </tr>
           <tr>
             <td><label for="job">Poste occupé : </label></td>
-            <td><input type="text" id="job" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="job"></td>
+            <td><input type="text" id="job" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{3,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="job"></td>
           </tr>
           <tr>
             <td><label for="emailSignup">Adresse e-mail : </label></td>
-            <td><input type="email" id="emailSignup" pattern="[A-Za-zÀ-ÖØ-öø-ÿ-.'_0-9]{0,30}@groupomania.com" required v-model="email"></td>
+            <td><input type="email" id="emailSignup" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ-.'_0-9]{0,62}[A-Za-zÀ-ÖØ-öø-ÿ]@groupomania.com" required v-model="email"></td>
           </tr>
           <tr>
             <td><label for="passwordSignup" class="my-4 mr-3">Mot de passe : </label></td>
-            <td><input type="password" id="passwordSignup" required v-model="password"></td>
+            <td><input type="password" id="passwordSignup" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}" required v-model="password"></td>
           </tr>
           <tr>
             <td><label for="confirmpasswordSignup" class="my-4 mr-3">Confirmation du mot de passe : </label></td>
             <td><input type="password" id="confirmpasswordSignup" required v-model="confirmationPassword"></td>
           </tr>
           <tr>
-            <td colspan="2"><input type="submit" id="submitButton" value="S'inscrire" @click="sendNewAccountRequest()" :disabled="this.updateAndReturnDisabled()"></td>
+            <td colspan="2"><input type="submit" id="submitButton" value="S'inscrire" @click="sendNewAccountRequest()" :disabled="!this.isFormFilled()"></td>
           </tr>
       </tbody>
-  </table>
+    </table>
 
   </body>
 </template>
@@ -40,14 +46,17 @@
 <script>
   import Nav from '../components/Nav.vue'
 
-  export default {
+  export default
+  {
     name: 'Signup',
-    components: {
+    components:
+    {
       Nav
     },
-    data: function() {
+    data: function()
+    {
       return {
-        disabled: false,
+        formErrors: [],
         firstName: '',
         lastName: '',
         job: '',
@@ -56,34 +65,75 @@
         confirmationPassword: ''
       };
     },
-    computed: {
-      is_form_correct() {
-        const myBool = ((this.firstName.length != 0) && 
+    methods:
+    {
+      isFormFilled()
+      {
+        return ((this.firstName.length != 0) && 
                (this.lastName.length != 0) &&
                (this.job.length != 0) &&
                (this.email.length != 0) &&
                (this.password.length != 0) &&
-               (this.confirmationPassword.length != 0) &&
-               (this.password === this.confirmationPassword));
-        return myBool
-      }
-    },
-    methods: {
-      updateAndReturnDisabled() {
-        this.disabled = !this.is_form_correct;
-        return this.disabled;
+               (this.confirmationPassword.length != 0))
       },
-      sendNewAccountRequest(){
-        console.log("Tu as appuyé sur le bouton");
-        let test = this.firstName;
-        let test2 = this.lastName;
-        let test3 = this.job;
-        let test4 = this.email;
-        let test5 = this.password;
-        let signupInfo = {
-          test, test2, test3, test4, test5
-        };
-        console.log(signupInfo)
+      
+      isFormCorrect()
+      {
+        this.formErrors.length = 0; // Supprime le précédent tableau d'erreurs
+        let isFormCorrect = false;
+
+        let lastNameInput = document.getElementById("lastName");
+        if (!lastNameInput.checkValidity())
+        {
+          this.formErrors.push('Votre nom ne doit contenir que des lettres');
+        }
+
+        let firstNameInput = document.getElementById("firstName");
+        if (!firstNameInput.checkValidity())
+        {
+          this.formErrors.push('Votre prénom ne doit contenir que des lettres');
+        }
+
+        let jobInput = document.getElementById("job");
+        if (!jobInput.checkValidity())
+        {
+          this.formErrors.push('Votre poste ne doit contenir que des lettres');
+        }
+
+        let emailInput = document.getElementById("emailSignup");
+        if (!emailInput.checkValidity())
+        {
+          this.formErrors.push('Votre email doit avoir une extension \'@groupomania.com\' et ne doit contenir que des lettres');
+        }
+
+        let passwordInput = document.getElementById("passwordSignup");
+        if (!passwordInput.checkValidity())
+        {
+          this.formErrors.push('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial, 1 chiffre et faire plus de 7 caractères');
+        }
+
+        let confirmPasswordInput = document.getElementById("confirmpasswordSignup");
+        if (confirmPasswordInput.value !== passwordInput.value)
+        {
+          this.formErrors.push('Les deux mots de passe diffèrent');
+        }
+
+        if (this.formErrors.length == 0)
+        {
+          isFormCorrect = true;
+        }
+
+        return isFormCorrect;
+      },
+
+      sendNewAccountRequest()
+      {
+        if (!this.isFormCorrect())
+        {
+          console.log("Arrete toi la")
+          return;
+        }
+        console.log("Ici")
         // Initialisation des options de la méthode fetch
         let options = 
         {
@@ -91,7 +141,11 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({signupInfo}) // Remplissage du body de la requête avec les informations nécessaires
+            body: JSON.stringify({firstName: this.firstName,
+                                  lastName : this.lastName,
+                                  job : this.job,
+                                  email : this.email,
+                                  password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
         };
         fetch('http://localhost:3000/api/employee/signup', options)
         .then(response =>

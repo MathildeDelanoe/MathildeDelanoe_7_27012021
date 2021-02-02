@@ -4,7 +4,7 @@
       <div id="identity">
         <h1> Mon profil</h1>
         <div id="profile">
-          <div id="informations">
+          <div>
             <p> Nom : </p>
             <p> Prénom : </p>
             <p> Poste occupé : </p>
@@ -35,64 +35,53 @@ import Nav from '../components/Nav.vue'
 
 <style lang="scss">
 
-#identity
-  {
+#identity {
     margin-top:50px;
     padding : 10px;
     background-color:rgb(48,66,96);
     color:white;
     border-radius:10px;
-
+    box-shadow: 5px 5px 5px black;
   }
 
-#profile
-  {
+  #profile {
     display:flex;
     flex-direction:column-reverse;
 
-  #picture{
+  #picture {
     border:1px solid cyan;
     width:25%;
     border-radius:50%;
     align-self:center;
   }
+
   }
 
   @media screen and (min-width:768px) {
-    #identity 
-    {
+    #identity {
       padding:5px 20px 20px;
       margin-top:100px;
       width:40%;
       margin:100px auto;
 
-      #profile 
-      {
+      #profile {
         flex-direction:row;
         justify-content:space-between;
         // border:1px solid red;
       }
 
-      #informations 
-      {
-        // border:1px solid green;
-      }
-
-      #picture 
-      {
+      #picture {
         width:30%;
         height:200px;
         margin:auto;
       }
 
-      h1 
-      {
+      h1 {
         text-align:center;
         font-size:2.5em;
       }
 
-      p 
-      {
+      p {
         margin:30px;
       }
     }

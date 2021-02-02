@@ -1,8 +1,11 @@
 <template>
+
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
-    <div v-if="isConnected">
-      <router-link to="/">Se déconnecter</router-link>
+    <div id = "navConnected" v-if="isConnected">
+      <router-link to="/Profile"><div id="profileIcon"></div></router-link>
+      <router-link to="/" id="logoffText">Se déconnecter</router-link>
+      <router-link to="/" id="icon"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
     </div>
     <div v-else>
       <router-link to="/signup">S'inscrire</router-link> |
@@ -12,18 +15,43 @@
 </template>
 
 <script>
+  import { library } from '@fortawesome/fontawesome-svg-core'
+  import { faPowerOff } from '@fortawesome/free-solid-svg-icons'
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  library.add(faPowerOff)
   export default {
     name: 'Nav',
+
+    components: {
+      'font-awesome-icon': FontAwesomeIcon
+    },
+
     props: {
       isConnected: {
         type: Boolean,
         default: false
       }
-    }
+    },
   }
 </script>
 
 <style lang="scss">
+  #logoffText {
+    display: none;
+  }
+  #icon {
+    margin-left:15px;
+  }
+  #navConnected {
+    display: flex;
+    align-items: flex-end;
+  }
+  #profileIcon {
+    width: 30px;
+    height: 30px;
+    border: 3px solid cyan;
+    border-radius:50%;
+  }
   #app {
     font-family: Avenir, Helvetica, Arial, sans-serif;
     // -webkit-font-smoothing: antialiased;
@@ -66,6 +94,13 @@
       img {
         height: 50px;
       }
+    }
+    #logoffText {
+      display: block;
+      margin-left:20px;
+    }
+    #icon {
+      display: none;
     }
   }
 </style>

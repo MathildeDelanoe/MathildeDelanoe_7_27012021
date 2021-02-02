@@ -1,6 +1,6 @@
 <template>
   <body class="profile">
-    <Nav />
+    <Nav :isConnected="true"/>
       <h1>Here is the profile</h1>
   </body>
 </template>

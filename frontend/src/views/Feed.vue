@@ -1,6 +1,6 @@
 <template>
-  <body class="profile">
-    <Nav />
+  <body class="feed">
+    <Nav :isConnected="true"/>
       <h1>Here is the feed</h1>
   </body>
 </template>
@@ -10,7 +10,7 @@ import Nav from '../components/Nav.vue'
 
   export default
   {
-    name: 'Profile',
+    name: 'Feed',
     components:
     {
       Nav

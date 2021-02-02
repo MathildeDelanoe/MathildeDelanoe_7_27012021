@@ -1,21 +1,36 @@
 <template>
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
-    <div>
+    <div v-if="isConnected">
+      <router-link to="/">Se déconnecter</router-link>
+    </div>
+    <div v-else>
       <router-link to="/signup">S'inscrire</router-link> |
       <router-link to="/">Se connecter</router-link>
     </div>
   </div>
 </template>
 
+<script>
+  export default {
+    name: 'Nav',
+    props: {
+      isConnected: {
+        type: Boolean,
+        default: false
+      }
+    }
+  }
+</script>
+
 <style lang="scss">
-  // #app {
-  //   font-family: Avenir, Helvetica, Arial, sans-serif;
-  //   -webkit-font-smoothing: antialiased;
-  //   -moz-osx-font-smoothing: grayscale;
-  //   text-align: center;
-  //   color: #2c3e50;
-  // }
+  #app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    // -webkit-font-smoothing: antialiased;
+    // -moz-osx-font-smoothing: grayscale;
+    // text-align: center;
+    // color: #2c3e50;
+  }
 
   #nav {
     padding: 10px;
@@ -38,6 +53,7 @@
       &.router-link-exact-active {
         text-decoration: underline;
         // color:white;
+        color:rgb(209,81,90);
       }
     }
   }

@@ -224,7 +224,7 @@
             .then(response => 
             {
               console.log(response);
-              this.$router.push({ name: 'Profile' });
+              this.$router.push({ name: 'Feed' });
             })
         })
         .catch(error => alert(error))

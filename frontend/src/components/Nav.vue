@@ -9,18 +9,19 @@
 </template>
 
 <style lang="scss">
-  #app {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-  }
+  // #app {
+  //   font-family: Avenir, Helvetica, Arial, sans-serif;
+  //   -webkit-font-smoothing: antialiased;
+  //   -moz-osx-font-smoothing: grayscale;
+  //   text-align: center;
+  //   color: #2c3e50;
+  // }
 
   #nav {
     padding: 10px;
     font-size: 0.8em;
-    background-color:rgb(175,175,177);
+    // background-color:rgb(175,175,177);
+    background-color:rgb(48,66,96);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -30,12 +31,13 @@
     }
 
     a {
-      color: rgb(83,83,83);
+      // color: rgb(83,83,83);
+      color:white;
       text-decoration: none;
 
       &.router-link-exact-active {
         text-decoration: underline;
-        color:white;
+        // color:white;
       }
     }
   }

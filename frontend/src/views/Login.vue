@@ -1,20 +1,8 @@
-<script>
-import Nav from '../components/Nav.vue'
-
-export default {
-  name: 'login',
-  components: {
-    Nav
-  }
-}
-</script>
-
-
 <template>
   <body class="login">
     <Nav />
 
-   <table>
+    <table>
       <tbody class="text-right">
           <tr>
             <td><label for="emailLogin">Adresse e-mail : </label></td>
@@ -31,19 +19,32 @@ export default {
             <td colspan="2"><span>Pas de compte? <router-link to="/signup">S'inscrire</router-link></span></td>
           </tr>
       </tbody>
-  </table>
-
-
+    </table>
   </body>
 </template>
+
+<script>
+  import Nav from '../components/Nav.vue'
+
+  export default
+  {
+    name: 'login',
+    components:
+    {
+      Nav
+    }
+  }
+</script>
 
 <style lang="scss">
   table
   {
     padding:30px 30px 10px 30px;
-    background-color:rgb(175,175,177);
+    // background-color:rgb(175,175,177);
+    background-color:rgb(48,66,96);
     border-radius:10px;
-    color:rgb(83,83,83);
+    // color:rgb(83,83,83);
+    color:white;
     margin:100px auto 0px auto;
 
     td
@@ -75,5 +76,9 @@ export default {
     }
 
   }
+
+  p, li{
+      color:rgb(224,18,29);
+    }
 
 </style>

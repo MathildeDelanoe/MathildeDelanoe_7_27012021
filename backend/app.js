@@ -2,32 +2,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const mysql = require('mysql');
 const helmet = require("helmet");
-require('dotenv').config();
 
 // Importation des routeurs
 const employeeRoutes = require('./routes/employee');
-
-
-// Connexion à une base de données mysql
-let connection = mysql.createConnection({
-    host:process.env.DB_HOST,
-    user:process.env.DB_USER,
-    password:process.env.DB_PASS,
-    database:process.env.DB_NAME
-});
-
-connection.connect(function(err) {
-  if (err) throw err;
-  console.log("Connected to the database!");
-  // var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
-  // con.query(sql, function (err, result) {
-  //   if (err) throw err;
-  //   console.log("Table created");
-  // });
-});
-
 
 // Création de l'application Express
 const app = express();

@@ -2,7 +2,7 @@
   <body class="signup">
     <Nav />
 
-    <div v-if="formErrors.length != 0">
+    <div id="error" v-if="formErrors.length != 0">
       <p>Le formulaire contient des erreurs, veuillez les corriger pour pouvoir vous inscrire:</p>
       <ul>
         <li v-for="error in formErrors" :key="error">{{ error }}</li>
@@ -232,3 +232,13 @@
     }
   }
 </script>
+
+<style lang="scss">
+
+  #error
+  {
+    color:rgb(224,18,29);
+    text-align:center;
+  }
+
+</style>

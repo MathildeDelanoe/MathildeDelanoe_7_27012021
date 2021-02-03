@@ -1,6 +1,6 @@
 // Importation des dépendances
 const bcrypt = require('bcrypt');
-// const jwt = require ('jsonwebtoken');
+const jwt = require ('jsonwebtoken');
 var cryptoJs = require("crypto-js");
 var passwordValidator = require('password-validator');
 const employee = require('../models/employee');

@@ -6,14 +6,14 @@
       <tbody class="text-right">
           <tr>
             <td><label for="emailLogin">Adresse e-mail : </label></td>
-            <td><input type="text" id="emailLogin" required></td>
+            <td><input type="text" id="emailLogin" required v-model="email"></td>
           </tr>
           <tr>
             <td><label for="passwordLogin">Mot de passe : </label></td>
-            <td><input type="password" id="passwordLogin" required></td>
+            <td><input type="password" id="passwordLogin" required v-model="password"></td>
           </tr>
           <tr>
-            <td colspan="2"><input type="submit" id="submitButton" value="Se connecter" disabled></td>
+            <td colspan="2"><input type="submit" id="submitButton" value="Se connecter" @click="loginToAccount()" :disabled=!this.isFormFilled()></td>
           </tr>
           <tr>
             <td colspan="2"><span>Pas de compte? <router-link to="/signup">S'inscrire</router-link></span></td>
@@ -32,6 +32,75 @@
     components:
     {
       Nav
+    },
+    data: function()
+    {
+      return {
+        email: '',
+        password: '',
+      };
+    },
+    methods:
+    {
+      isFormFilled()
+      {
+        return ((this.email.length != 0) &&
+               (this.password.length != 0))
+      },
+      loginToAccount()
+      {
+        // Initialisation des options de la méthode fetch
+        let options = 
+        {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({email : this.email,
+                                  password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
+        };
+        fetch('http://localhost:3000/api/employee/login', options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+              // S'il y a une erreur, écriture d'un message correspondant à l'erreur
+              let message = [];
+              if (response.status >= 300 && response.status <= 399)
+              {
+                  message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
+              }
+              else if (response.status >= 400 && response.status <= 499)
+              {
+                  message = 'Erreur liée à l\'utilisation du service web';
+              }
+              else if (response.status >= 500 && response.status <= 599)
+              {
+                  message = 'Erreur venant du service web';
+              }
+              else
+              {
+                  message = 'Erreur d\'un autre type';
+              }
+              throw new Error(message);
+          }
+        })
+        .then(response =>
+        {
+          console.log(response);
+          this.$router.push({ 
+            name: 'Feed',
+            params: {
+              auth: response.token
+            }
+          });
+        })
+        .catch(error => alert(error))
+      }
     }
   }
 </script>

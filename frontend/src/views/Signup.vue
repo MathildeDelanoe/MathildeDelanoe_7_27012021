@@ -190,7 +190,6 @@
                 body: JSON.stringify({email : this.email,
                                       password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
             };
-            console.log("Es-tu la?")
             fetch('http://localhost:3000/api/employee/login', options)
             .then(response =>
             {
@@ -224,7 +223,12 @@
             .then(response => 
             {
               console.log(response);
-              this.$router.push({ name: 'Feed' });
+              this.$router.push({ 
+                name: 'Feed',
+                params: {
+                  auth: response.token
+                }
+              });
             })
         })
         .catch(error => alert(error))

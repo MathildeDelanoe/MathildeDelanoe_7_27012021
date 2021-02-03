@@ -3,9 +3,14 @@
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div id = "navConnected" v-if="isConnected">
-      <router-link to="/Profile"><div id="profileIcon"></div></router-link>
+      <router-link to="/Profile">
+        <div>
+          <avatar fullname="Jane Doe" id="largeAvatarNav"></avatar>
+          <avatar fullname="Jane Doe" :size="40" id="smallAvatarNav"></avatar>
+        </div>
+      </router-link>
       <router-link to="/" id="logoffText">Se déconnecter</router-link>
-      <router-link to="/" id="icon"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
+      <router-link to="/" id="icon" title="Se déconnecter"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
     </div>
     <div v-else>
       <router-link to="/signup">S'inscrire</router-link> |
@@ -18,12 +23,14 @@
   import { library } from '@fortawesome/fontawesome-svg-core'
   import { faPowerOff } from '@fortawesome/free-solid-svg-icons'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import Avatar  from 'vue-avatar-component'
   library.add(faPowerOff)
   export default {
     name: 'Nav',
 
     components: {
-      'font-awesome-icon': FontAwesomeIcon
+      'font-awesome-icon': FontAwesomeIcon,
+      Avatar
     },
 
     props: {
@@ -39,18 +46,16 @@
   #logoffText {
     display: none;
   }
+  #largeAvatarNav {
+    display: none;
+  }
   #icon {
     margin-left:15px;
   }
   #navConnected {
     display: flex;
-    align-items: flex-end;
-  }
-  #profileIcon {
-    width: 30px;
-    height: 30px;
-    border: 3px solid cyan;
-    border-radius:50%;
+    align-items: center;
+    font-size:1.2em;
   }
   #app {
     font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -86,6 +91,7 @@
     }
   }
 
+
   @media screen and (min-width:768px) {
     #nav {
       padding: 20px;
@@ -98,9 +104,16 @@
     #logoffText {
       display: block;
       margin-left:20px;
+      font-size:0.8em;
     }
     #icon {
       display: none;
+    }
+    #smallAvatarNav {
+      display: none;
+    }
+    #largeAvatarNav {
+      display:block;
     }
   }
 </style>

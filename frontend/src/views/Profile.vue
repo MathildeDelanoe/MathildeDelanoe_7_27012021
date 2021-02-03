@@ -3,17 +3,19 @@
     <Nav :isConnected="true"/>
       <div id="identity">
         <h1> Mon profil</h1>
-        <div id="profile">
+        <div id="cart_identity">
           <div>
             <p> Nom : </p>
             <p> Prénom : </p>
             <p> Poste occupé : </p>
             <p> Equipe : </p>
-            <p> Mot de passe : changer le mot de passe</p>
+            <p> Mot de passe : </p>
             <p> Supprimer le compte </p>
+            <p> Modifier le compte </p>
           </div>
-          <div id=picture>
-            <p>Photo de profil</p>
+          <div class="avatar"> 
+            <avatar fullname="Jane Toeyuyi" id="smallAvatarProfile"></avatar>
+            <avatar fullname="Jane Toeyuyi" :size="200" id="largeAvatarProfile"></avatar>
           </div>  
         </div>
       </div>
@@ -21,17 +23,20 @@
 </template>
 
 <script>
-import Nav from '../components/Nav.vue'
+  import Nav from '../components/Nav.vue'
+  import Avatar  from 'vue-avatar-component'
 
-  export default
-  {
+  export default {
     name: 'Profile',
     components:
     {
-      Nav
-    }
+      Nav,
+      Avatar
+    },
+
   }
 </script>
+
 
 <style lang="scss">
 
@@ -43,31 +48,65 @@ import Nav from '../components/Nav.vue'
     border-radius:10px;
     box-shadow: 5px 5px 5px black;
   }
-
-  #profile {
+  
+  #cart_identity {
     display:flex;
     flex-direction:column-reverse;
-
-  #picture {
-    border:1px solid cyan;
-    width:25%;
-    border-radius:50%;
-    align-self:center;
   }
 
+  .avatar{
+    text-align:center;
+  }
+  #largeAvatarProfile{
+    display:none;
+  }
+  
+
+  @media screen and (min-width:768px) and (max-width:1400px) {
+    #identity {
+      padding:5px 20px 20px;
+      margin-top:100px;
+      width:90%;
+      margin:100px auto;
+
+      #cart_identity {
+        flex-direction:row;
+        justify-content:space-between;
+      }
+
+      h1 {
+        text-align:center;
+        font-size:2.5em;
+      }
+
+      p {
+        margin:30px;
+      }
+
+      #smallAvatarProfile {
+        display:none;
+      }
+
+      #largeAvatarProfile {
+        display:block;
+      }
+
+      .avatar {
+        margin:30px 5px 0px 0px;
+      }
+    }
   }
 
-  @media screen and (min-width:768px) {
+    @media screen and (min-width:1500px) {
     #identity {
       padding:5px 20px 20px;
       margin-top:100px;
       width:40%;
       margin:100px auto;
 
-      #profile {
+      #cart_identity {
         flex-direction:row;
         justify-content:space-between;
-        // border:1px solid red;
       }
 
       #picture {
@@ -83,6 +122,18 @@ import Nav from '../components/Nav.vue'
 
       p {
         margin:30px;
+      }
+
+      #smallAvatarProfile {
+        display:none;
+      }
+
+      #largeAvatarProfile {
+        display:block;
+      }
+
+      .avatar {
+        margin:30px 5px 0px 0px;
       }
     }
   }

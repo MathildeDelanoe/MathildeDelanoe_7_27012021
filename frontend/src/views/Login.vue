@@ -2,7 +2,7 @@
   <body class="login">
     <Nav />
 
-    <table>
+    <table class="form">
       <tbody class="text-right">
           <tr>
             <td><label for="emailLogin">Adresse e-mail : </label></td>
@@ -37,7 +37,7 @@
 </script>
 
 <style lang="scss">
-  table
+  .form
   {
     padding:30px 30px 10px 30px;
     // background-color:rgb(175,175,177);

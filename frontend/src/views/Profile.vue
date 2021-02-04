@@ -19,6 +19,9 @@
           </div>  
         </div>
       </div>
+      <div id="retour"> 
+        <router-link to="/feed" >Retour fil d'actualité</router-link> 
+      </div>
   </body>
 </template>
 
@@ -33,7 +36,12 @@
       Nav,
       Avatar
     },
-
+    props: {
+      auth: {
+        type: String,
+        required: true
+      }
+    }
   }
 </script>
 
@@ -47,27 +55,34 @@
     color:white;
     border-radius:10px;
     box-shadow: 5px 5px 5px black;
-  }
+}
   
-  #cart_identity {
-    display:flex;
-    flex-direction:column-reverse;
-  }
+#cart_identity {
+  display:flex;
+  flex-direction:column-reverse;
+}
 
-  .avatar{
-    text-align:center;
-  }
-  #largeAvatarProfile{
-    display:none;
-  }
-  
+.avatar {
+  text-align:center;
+}
 
-  @media screen and (min-width:768px) and (max-width:1400px) {
+#largeAvatarProfile {
+  display:none;
+}
+
+#retour {
+  // color:black;
+  margin-top:10px;
+  text-align:right;
+  font-size:0.8em;
+  font-weight: bold;
+}
+
+@media screen and (min-width:768px) and (max-width:1400px) {
     #identity {
       padding:5px 20px 20px;
-      margin-top:100px;
       width:90%;
-      margin:100px auto;
+      margin:100px auto 15px;
 
       #cart_identity {
         flex-direction:row;
@@ -95,46 +110,55 @@
         margin:30px 5px 0px 0px;
       }
     }
-  }
 
-    @media screen and (min-width:1500px) {
-    #identity {
-      padding:5px 20px 20px;
-      margin-top:100px;
-      width:40%;
-      margin:100px auto;
-
-      #cart_identity {
-        flex-direction:row;
-        justify-content:space-between;
-      }
-
-      #picture {
-        width:30%;
-        height:200px;
-        margin:auto;
-      }
-
-      h1 {
-        text-align:center;
-        font-size:2.5em;
-      }
-
-      p {
-        margin:30px;
-      }
-
-      #smallAvatarProfile {
-        display:none;
-      }
-
-      #largeAvatarProfile {
-        display:block;
-      }
-
-      .avatar {
-        margin:30px 5px 0px 0px;
-      }
+    #retour {
+      width:95%;
+      margin:auto;
     }
   }
+
+@media screen and (min-width:1500px) {
+  #identity {
+    padding:5px 20px 20px;
+    width:40%;
+    margin:100px auto 15px;
+
+    #cart_identity {
+      flex-direction:row;
+      justify-content:space-between;
+    }
+
+    #picture {
+      width:30%;
+      height:200px;
+      margin:auto;
+    }
+
+    h1 {
+      text-align:center;
+      font-size:2.5em;
+    }
+
+    p {
+      margin:30px;
+    }
+
+    #smallAvatarProfile {
+      display:none;
+    }
+
+    #largeAvatarProfile {
+      display:block;
+    }
+
+    .avatar {
+      margin:30px 5px 0px 0px;
+    }
+  }
+  #retour {
+    width:40%;
+    margin:auto;
+  }
+
+}
 </style>

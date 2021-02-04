@@ -9,7 +9,7 @@
       </ul>
     </div>
     <div>
-      <table>
+      <table class="form">
         <tbody class="text-right">
             <tr>
               <td><label for="lastName">Nom : </label></td>

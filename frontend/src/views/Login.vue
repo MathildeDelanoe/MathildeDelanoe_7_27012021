@@ -91,7 +91,6 @@
         })
         .then(response =>
         {
-          console.log(response);
           this.$router.push({ 
             name: 'Feed',
             params: {

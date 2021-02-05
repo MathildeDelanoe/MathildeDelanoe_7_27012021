@@ -3,10 +3,13 @@
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div id = "navConnected" v-if="isConnected">
-      <router-link to="/Profile">
+      <!-- <router-link to="/Profile"> -->
+      <!-- <router-link :to="{ name: 'Profile', params: { auth } }" @click="emitCustomEvent"> -->
+      <!-- <router-link to="/profile" @click="emitCustomEvent"> -->
+      <router-link to="/profile" @click="myTest">
         <div>
-          <avatar fullname="Jane Doe" id="largeAvatarNav"></avatar>
-          <avatar fullname="Jane Doe" :size="40" id="smallAvatarNav"></avatar>
+          <avatar :fullname="fullName" id="largeAvatarNav"></avatar>
+          <avatar :fullname="fullName" :size="40" id="smallAvatarNav"></avatar>
         </div>
       </router-link>
       <router-link to="/" id="logoffText">Se déconnecter</router-link>
@@ -32,13 +35,35 @@
       'font-awesome-icon': FontAwesomeIcon,
       Avatar
     },
-
     props: {
       isConnected: {
         type: Boolean,
         default: false
+      },
+      fullName: {
+        type: String
+      },
+      auth: {
+        type: String,
+        default: ''
       }
     },
+    methods:
+    {
+      emitCustomEvent()
+      {
+        this.$emit('custom-event-name', {message: 'message perso'})
+      },
+      myTest()
+      {
+        this.$router.push({ 
+            name: 'Profile',
+            params: {
+              auth: this.auth
+            }
+          });
+      }
+    }
   }
 </script>
 
@@ -68,7 +93,6 @@
   #nav {
     padding: 10px;
     font-size: 0.8em;
-    // background-color:rgb(175,175,177);
     background-color:rgb(48,66,96);
     display: flex;
     justify-content: space-between;

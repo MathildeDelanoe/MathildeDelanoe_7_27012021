@@ -1,6 +1,9 @@
 <template>
   <body class="feed">
-    <Nav :isConnected="true" :fullName="this.userName" :auth="this.auth"/>
+    <Nav :isConnected="true" :fullName="this.userName" :auth="this.auth" @custon-event-name="setMessage"/>
+    <div>
+      <p> {{ message }}</p>
+    </div>
     <div id="post">
       <label for="newPost">Publication : </label>
       <div>
@@ -10,7 +13,8 @@
       </div>
       <div id="button">
         <button>Publier</button>
-        <button>Télécharger</button>
+        <label for="file" class="label-file">Télécharger</label>
+        <input type="file" id="file" class="input-file">
       </div>
     </div>
     <div id="posted">
@@ -27,16 +31,25 @@
         <font-awesome-icon :icon="['fas', 'trash']" />
       </div>  
       <div id="comments">
-        <label for="commentsText"></label>
+        <!-- <label for="commentsText"></label>
         <textarea id="commentsText" name="commentsText" placeholder="Commentaires ...">
         </textarea>
         <div id="responseText">
           <font-awesome-icon :icon="['fas', 'thumbs-up']"/>
           <p>J'aime</p>
-          <p>Répondre</p>
+          <p>Supprimer</p>
+        </div> -->
+        <div>
+          <!-- <ul id="messages"></ul> -->
+          <form id="formComments" action="">
+            <avatar fullname="Jane Toeyuyi" :size="30"></avatar>
+            <input id="input" placeholder="Votre commentaire" /><button>Envoyer</button>
+          </form>
         </div>
-      </div>  
+      </div> 
     </div>
+    
+   
   </body>
 </template>
 
@@ -47,6 +60,7 @@
   import { faComment } from '@fortawesome/free-solid-svg-icons'
   import { faThumbsUp } from '@fortawesome/free-solid-svg-icons'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+   import Avatar  from 'vue-avatar-component'
   library.add(faTrash)
   library.add(faThumbsUp)
   library.add(faComment)
@@ -58,12 +72,15 @@
     components:
     {
       'font-awesome-icon': FontAwesomeIcon,
-      Nav
+      Nav,
+      Avatar
     },
     data: function()
     {
       return {
-        userName: ''
+        userName: 'test nico',
+        employee: {},
+        message: 'Hello'
       };
     },
     props: {
@@ -72,52 +89,15 @@
         required: true
       }
     },
-    mounted(){
-      // Initialisation des options de la méthode fetch
-      let options = 
+    methods:
+    {
+      setMessage(payload)
       {
-          method: 'get',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + this.auth , // this.auth est recupere du composant signup/login
-          }
-      };
-      fetch('http://localhost:3000/api/employee/getOne', options)
-      .then(response =>
-      {
-        if (response.ok && (response.status >= 200 && response.status <= 299))
-        {
-            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-        }
-        else
-        {
-            // S'il y a une erreur, écriture d'un message correspondant à l'erreur
-            let message = [];
-            if (response.status >= 300 && response.status <= 399)
-            {
-                message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
-            }
-            else if (response.status >= 400 && response.status <= 499)
-            {
-                message = 'Erreur liée à l\'utilisation du service web';
-            }
-            else if (response.status >= 500 && response.status <= 599)
-            {
-                message = 'Erreur venant du service web';
-            }
-            else
-            {
-                message = 'Erreur d\'un autre type';
-            }
-            throw new Error(message);
-        }
-      })
-      .then(response => 
-      {
-        this.userName = response.firstName + " " + response.lastName;
-      })
-      .catch(error => alert(error));
-    }
+        this.message = payload.message;
+        console.log("try to read the event " + this.message)
+      }
+    },
+    
   }
 </script>
 
@@ -147,12 +127,22 @@
     display:flex;
     justify-content:space-between;
   }
-  button {
+  button, .label-file{
       padding:10px 15px;
       border-radius:5px;
       background-color:rgb(48,66,96);
       color: white;
       border:none;
+  }
+
+  .label-file{
+    cursor:pointer;
+    font-weight: normal;
+    font-size:0.8em;
+  }
+
+  .input-file{
+    display:none;
   }
 
 }
@@ -211,6 +201,29 @@
     padding-left:10px;
   }
 }
+#formComments {
+  margin:10px 0px ;
+  display:flex;
+}
+
+
+#input {
+  border-radius:5px 0px 0px 5px;
+  padding:5px;
+  margin-left:5px;
+  width:80%;
+}
+
+button {
+  background-color:rgb(48,66,96);
+  border-color:rgb(48,66,96);
+  color:white;
+  border-radius:0px 5px 5px 0px;
+  padding:5px;
+  outline:none;
+}
+
+
 
 
   @media screen and (min-width:1500px) {

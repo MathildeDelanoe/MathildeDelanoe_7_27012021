@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require ('jsonwebtoken');
 var cryptoJs = require("crypto-js");
 var passwordValidator = require('password-validator');
-const employee = require('../models/employee');
 const mysql = require('mysql');
 const fs = require('fs');
 require('dotenv').config();

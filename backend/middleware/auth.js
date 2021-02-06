@@ -1,5 +1,6 @@
 // Importation des dépendances
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 // Création du middleware qui vérifie l'authentification à l'aide du token
 module.exports = (req, res, next) => {
@@ -11,7 +12,7 @@ module.exports = (req, res, next) => {
       */
       const token =  req.headers.authorization.split(' ')[1];
       // Décodage du token à l'aide de la clé utilisée pendant le codage
-      const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+      const decodedToken = jwt.verify(token, process.env.TOKEN_KEY);
       // Récupération du userId du token décodé
       const userId = decodedToken.userId;
       /* Comparaison du userId présent dans le token avec celui de la requête pour s'assurer

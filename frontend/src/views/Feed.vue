@@ -1,9 +1,6 @@
 <template>
   <body class="feed">
-    <Nav :isConnected="true" :fullName="this.userName" :auth="this.auth" @custon-event-name="setMessage"/>
-    <div>
-      <p> {{ message }}</p>
-    </div>
+    <Nav :isConnected="true" :fullName="userName" :avatar="avatar"/>
     <div id="post">
       <label for="newPost">Publication : </label>
       <div>
@@ -56,15 +53,13 @@
 <script>
   import Nav from '../components/Nav.vue'
   import { library } from '@fortawesome/fontawesome-svg-core'
-  import { faTrash } from '@fortawesome/free-solid-svg-icons'
-  import { faComment } from '@fortawesome/free-solid-svg-icons'
-  import { faThumbsUp } from '@fortawesome/free-solid-svg-icons'
+  import { faTrash, faComment, faThumbsUp} from '@fortawesome/free-solid-svg-icons'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-   import Avatar  from 'vue-avatar-component'
+  import Avatar  from 'vue-avatar-component'
+  import { mapGetters } from 'vuex'
   library.add(faTrash)
   library.add(faThumbsUp)
   library.add(faComment)
-  // import { onMounted } from 'vue'
 
   export default
   {
@@ -78,26 +73,80 @@
     data: function()
     {
       return {
-        userName: 'test nico',
+        userName: '',
         employee: {},
-        message: 'Hello'
+        avatar: ''
       };
     },
-    props: {
-      auth: {
-        type: String,
-        required: true
-      }
+    mounted(){
+      // Initialisation des options de la méthode fetch
+      let options = 
+      {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+          },
+      };
+      fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
+      .then(response =>
+      {
+        if (response.ok && (response.status >= 200 && response.status <= 299))
+        {
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+        }
+        else
+        {
+            // S'il y a une erreur, écriture d'un message correspondant à l'erreur
+            let message = [];
+            if (response.status >= 300 && response.status <= 399)
+            {
+                message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
+            }
+            else if (response.status >= 400 && response.status <= 499)
+            {
+                message = 'Erreur liée à l\'utilisation du service web';
+            }
+            else if (response.status >= 500 && response.status <= 599)
+            {
+                message = 'Erreur venant du service web';
+            }
+            else
+            {
+                message = 'Erreur d\'un autre type';
+            }
+            throw new Error(message);
+        }
+      })
+      .then(response => 
+      {
+        this.employee = this.formatEmployee(response.employee);
+        this.userName = this.employee.first_name + " " + this.employee.last_name;
+        this.avatar = this.employee.avatar;
+      })
+      .catch(error => alert(error));
+    },
+    computed:{
+      ...mapGetters(["getAuth", "getUserId"])
     },
     methods:
     {
-      setMessage(payload)
+      formatEmployee(employeeRaw)
       {
-        this.message = payload.message;
-        console.log("try to read the event " + this.message)
+        let formattedEmployee = employeeRaw;
+        if (formattedEmployee.first_name === null)
+          formattedEmployee.first_name = "Non renseigné";
+        if (formattedEmployee.last_name === null)
+          formattedEmployee.last_name = "Non renseigné";
+        if (formattedEmployee.avatar === null)
+          formattedEmployee.avatar = "";
+        if (formattedEmployee.job === null)
+          formattedEmployee.job = "Non renseigné";
+        if (formattedEmployee.team === null)
+          formattedEmployee.team = "Non renseigné";
+        return formattedEmployee;
       }
-    },
-    
+    }
   }
 </script>
 

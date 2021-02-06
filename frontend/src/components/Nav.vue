@@ -3,16 +3,13 @@
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div id = "navConnected" v-if="isConnected">
-      <!-- <router-link to="/Profile"> -->
-      <!-- <router-link :to="{ name: 'Profile', params: { auth } }" @click="emitCustomEvent"> -->
-      <!-- <router-link to="/profile" @click="emitCustomEvent"> -->
-      <router-link to="/profile" @click="myTest">
+      <router-link to="/profile" @click="goToProfile">
         <div>
-          <avatar :fullname="fullName" id="largeAvatarNav"></avatar>
-          <avatar :fullname="fullName" :size="40" id="smallAvatarNav"></avatar>
+          <avatar :fullname="fullName" :image="avatar" id="largeAvatarNav"></avatar>
+          <avatar :fullname="fullName" :image="avatar" :size="40" id="smallAvatarNav"></avatar>
         </div>
       </router-link>
-      <router-link to="/" id="logoffText">Se déconnecter</router-link>
+      <router-link to="/" id="logoffText" @click="logout">Se déconnecter</router-link>
       <router-link to="/" id="icon" title="Se déconnecter"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
     </div>
     <div v-else>
@@ -43,25 +40,21 @@
       fullName: {
         type: String
       },
-      auth: {
-        type: String,
-        default: ''
+      avatar: {
+        type: String
       }
     },
     methods:
     {
-      emitCustomEvent()
+      logout()
       {
-        this.$emit('custom-event-name', {message: 'message perso'})
+        console.log("try to logout here")
+        this.$store.commit('SET_AUTHENTICATION', '');
+        this.$store.commit('SET_USERID', '');
       },
-      myTest()
+      goToProfile()
       {
-        this.$router.push({ 
-            name: 'Profile',
-            params: {
-              auth: this.auth
-            }
-          });
+        this.$router.push({ name: 'Profile' });
       }
     }
   }

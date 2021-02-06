@@ -1,7 +1,6 @@
 <template>
   <body class="login">
     <Nav />
-
     <table class="form">
       <tbody class="text-right">
           <tr>
@@ -91,12 +90,9 @@
         })
         .then(response =>
         {
-          this.$router.push({ 
-            name: 'Feed',
-            params: {
-              auth: response.token
-            }
-          });
+          this.$store.commit('SET_AUTHENTICATION', response.token);
+          this.$store.commit('SET_USERID', response.userId);
+          this.$router.push({ name: 'Feed' });
         })
         .catch(error => alert(error))
       }

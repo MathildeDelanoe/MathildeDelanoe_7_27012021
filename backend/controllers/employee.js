@@ -5,6 +5,7 @@ var cryptoJs = require("crypto-js");
 var passwordValidator = require('password-validator');
 const employee = require('../models/employee');
 const mysql = require('mysql');
+const fs = require('fs');
 require('dotenv').config();
 
 /* Paramétrage du schéma de mot de passe autorisé
@@ -154,7 +155,6 @@ exports.login = (req, res, next) => {
             }
             connection.query("SELECT id, password FROM employees WHERE e_mail=?;", currentEmail, (error, result) => {
                 if (error) throw new Error(error);
-                console.log(result)
                 if (result.length === 1)
                 {
                     // L'utilisateur a été trouvé. Il faut maintenant procéder à la comparaison des mots de passe
@@ -192,6 +192,152 @@ exports.login = (req, res, next) => {
                 {
                     res.status(401).json({ message: "Plusieurs adresses email reconnues!" });
                 }
+            });
+        });
+    });
+};
+
+// Exportation du middleware de récupération des infos de l'utilisateur
+exports.retrieveUserInfo = (req, res, next) => {
+    console.log("retrieveUserInfo")
+    // /* La variable 'authorization' de 'req.headers' est un chaîne de caractères qui contient 'bearer xxxxx' 
+    //      où xxxx représente une chaine de caractères correspodant au token. C'est cette information
+    //      que nous récupérons ici
+    //   */
+    // const token =  req.headers.authorization.split(' ')[1];
+    // // Décodage du token à l'aide de la clé utilisée pendant le codage
+    // const decodedToken = jwt.verify(token, process.env.TOKEN_KEY);
+    // // Récupération du userId du token décodé
+    // const userId = decodedToken.userId;
+
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    connection.connect(error => {
+        if (error) throw error;
+        console.log("Connected to the database!");
+        // let sqlQuery = "SELECT * FROM employees WHERE id=?;" + req.params.id;
+        connection.query("SELECT * FROM employees WHERE id=?;", req.params.id, (error, result) => { //result est un tableau contenant toutes les lignes retournées
+            if (error) throw new Error(error);
+            res.status(200).json({
+                employee: result[0]
+            });
+        });
+    });
+};
+
+exports.deleteEmployee = (req, res, next) => {
+    console.log("deleteEmployee")
+
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    connection.connect(error => {
+        if (error) throw error;
+        console.log("Connected to the database!");
+        connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
+            if (error) throw error;
+            if (result[0].avatar)
+            {
+                console.log("a previous picture existed")
+                const filename = result[0].avatar.split('/images/')[1];
+                fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
+                    if (err) throw err;
+                    console.log('image supprimée');
+                });
+                // if (error) throw new Error(error);
+                // res.status(200).json({
+                //     updatedNumber: result.affectedRows,
+                //     filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+                // });
+            }
+        });
+        connection.query("DELETE FROM employees WHERE id=?",req.params.id , (error, result) => {
+            //result est un tableau contenant des informations sur comment la table a été impactée
+            if (error) throw new Error(error);
+            res.status(200).json({
+                deletionNumber: result.affectedRows
+            });
+        });
+    });
+};
+
+exports.updateEmployee = (req, res, next) => {
+    console.log("updateEmployee")
+    
+    // console.log(req.body)
+    // console.log(req.body.firstName)
+    // console.log(req.body.lastName)
+    // console.log(req.body.job)
+    // console.log(req.file)
+    // // Interrogation de l'existence d'un fichier dans la requête => Signifie que l'image, au moins, a été modifiée
+    // const modifiedEmployee = req.file ?
+    // { // Si l'image a été modifiée, gestion du formData reçu du frontEnd
+    //     ...req.body.employee,
+    //     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+    // } : 
+    // { // Seulement du contenu texte a été modifié, la requête présente seulement un contenu JSON
+    //     ...req.body.employee
+    // };
+
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    // const filename = thing.imageUrl.split('/images/')[1];
+    //   fs.unlink(`images/${filename}`, () => {
+    connection.connect(error => {
+        if (error) throw error;
+        console.log("Connected to the database!");
+
+        let sqlQuery = "UPDATE employees SET first_name = '";
+        sqlQuery += req.body.firstName;
+        sqlQuery += "', last_name = '";
+        sqlQuery += req.body.lastName;
+        if (req.file)
+        {
+            sqlQuery += "', avatar = '";
+            sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+            connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
+                if (error) throw error;
+                if (result[0].avatar)
+                {
+                    console.log("a previous picture existed")
+                    const filename = result[0].avatar.split('/images/')[1];
+                    fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
+                        if (err) throw err;
+                        console.log('image supprimée');
+                    });
+                    // if (error) throw new Error(error);
+                    // res.status(200).json({
+                    //     updatedNumber: result.affectedRows,
+                    //     filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+                    // });
+                }
+            });
+        }
+        sqlQuery += "', job = '";
+        sqlQuery += req.body.job;
+        sqlQuery += "', team = '";
+        sqlQuery += req.body.team;
+        sqlQuery += "' WHERE id=";
+        sqlQuery += req.params.id;
+        sqlQuery += ";"
+        console.log(sqlQuery)
+        connection.query(sqlQuery, (error, result) => {
+            //result est un tableau contenant des informations sur comment la table a été impactée
+            if (error) throw new Error(error);
+            res.status(200).json({
+                updatedNumber: result.affectedRows,
+                filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
             });
         });
     });

@@ -222,13 +222,9 @@
             })
             .then(response => 
             {
-              console.log(response);
-              this.$router.push({ 
-                name: 'Feed',
-                params: {
-                  auth: response.token
-                }
-              });
+              this.$store.commit('SET_AUTHENTICATION', response.token);
+              this.$store.commit('SET_USERID', response.userId);
+              this.$router.push({ name: 'Feed' });
             })
         })
         .catch(error => alert(error))

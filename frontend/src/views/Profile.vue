@@ -19,21 +19,43 @@
           </div>  
         </div>
         <div id="validationForm" v-if="this.isProfileUpdateNeeded">
-          <label for="lastName">Nom : </label>
-          <input type="text" id="lastName" :value="this.employee.last_name">
-          <label for="firstName">Prenom : </label>
-          <input type="text" id="firstName" :value="this.employee.first_name">
-          <label for="job">Poste : </label>
-          <input type="text" id="job" :value="this.employee.job">
-          <label for="team">Equipe : </label>
-          <input type="text" id="team" :value="this.employee.team">
-          <label for="avatar" class="label-file">Avatar</label>
-          <input type="file" id="avatar" class="input-file" accept=".jpg,.jpeg,.png">
-          <input type="submit" id="submitButton" value="Mettre à jour" @click="sendProfileUpdate()">
+          <div>
+            <label for="lastName">Nom : </label>
+            <input type="text" id="lastName" :value="this.employee.last_name">
+          </div>
+          <div>
+            <label for="firstName">Prenom : </label>
+            <input type="text" id="firstName" :value="this.employee.first_name">
+          </div>
+          <div>
+            <label for="job">Poste : </label>
+            <input type="text" id="job" :value="this.employee.job">
+          </div>
+          <div>
+            <label for="team">Equipe : </label>
+            <input type="text" id="team" :value="this.employee.team">
+          </div>
+          <div>
+            <label for="avatar" class="label-file">Modifier l'avatar : </label>
+            <input type="file" id="avatar" class="input-file" accept=".jpg,.jpeg,.png">
+          </div>
+          <div>
+            Supprimer l'avatar :
+            <input type="radio" id="no" name="avatarChoice" value="no" checked>
+            <label for="no">Non</label>
+            <input type="radio" id="yes" name="avatarChoice" value="yes">
+            <label for="yes">Oui</label>
+            <!-- <label for="avatar" class="label-file">Supprimer l'avatar : </label>
+            <input type="submit" id="submitButton" value="Supprimer l'image"> -->
+          </div>
+          <!-- <input type="submit" id="submitButton" value="Mettre à jour" @click="sendProfileUpdate()"> -->
+          <button @click="sendProfileUpdate()"> Mettre à jour </button>
+          <!-- <input type="submit" id="submitButton" value="Supprimer l'image"> -->
+          <!-- <button> Supprimer l'image</button> -->
         </div>
       </div>
       <div id="retour"> 
-        <router-link to="/feed" >Retour fil d'actualité</router-link> 
+        <router-link to="/feed">Retour fil d'actualité</router-link> 
       </div>
   </body>
 </template>
@@ -158,9 +180,14 @@
             team : CommonFunctions.formatInput(formInputs[3].value),
         };
 
-        if(formInputs[4].files.length !== 0)
+        let radioButton= document.getElementsByName('avatarChoice');
+        // for (let index = 0; index < radioButton.lenth; ++index)
+        for (let valueRadioButton of radioButton)
         {
-          console.log("file is selected")
+          if (valueRadioButton.checked)
+          {
+            updatedProfile.removeAvatar = (valueRadioButton.value === "no")?false:true;
+          }
         }
 
         // Initialisation des options de la méthode fetch
@@ -210,8 +237,18 @@
         })
         .then(response => 
         {
-          console.log("HERE")
-          updatedProfile.avatar = response.filename;
+          if (response.filename === null)
+          {
+            updatedProfile.avatar = this.employee.avatar;
+            if (updatedProfile.removeAvatar)
+            {
+              updatedProfile.avatar = null;
+            }
+          }
+          else
+          {
+            updatedProfile.avatar = response.filename;
+          }
           this.employee = this.formatEmployee(updatedProfile);
           
           this.userName = this.employee.first_name + " " + this.employee.last_name;
@@ -249,12 +286,20 @@
   display:none;
 }
 
-#retour {
-  // color:black;
+#retour { 
+  font-weight: bold;
   margin-top:10px;
   text-align:right;
   font-size:0.8em;
-  font-weight: bold;
+  a {
+    color:black;
+    text-decoration:none;
+  }
+}
+
+
+#validationForm > div {
+ margin:10px;
 }
 
 @media screen and (min-width:768px) and (max-width:1400px) {

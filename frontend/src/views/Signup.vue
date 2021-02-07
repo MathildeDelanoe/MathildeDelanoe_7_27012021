@@ -160,9 +160,8 @@
               throw new Error(CommonFunctions.errorManagement(response.status));
           }
         })
-        .then(response =>
+        .then(() =>
         {
-            console.log(response);
             // Initialisation des options de la méthode fetch
             let options = 
             {

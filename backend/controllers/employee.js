@@ -101,7 +101,6 @@ exports.signup = (req, res, next) => {
                 });
                 connection.connect(error => {
                     if (error) throw error;
-                    console.log("Connected to the database!");
                     let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, job, is_admin) VALUES ('";
                     sqlQuery += formatDatabaseInput(req.body.firstName);
                     sqlQuery += "', '";
@@ -123,7 +122,7 @@ exports.signup = (req, res, next) => {
         })
         .catch((error) => {res.status(403).json({error});})
     )
-    .catch((error => {console.log(error); res.status(500).json({ error });}))
+    .catch((error => res.status(500).json({ error })))
 };
 
 // Création du middleware de connexion des utilisateurs
@@ -141,7 +140,6 @@ exports.login = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        console.log("Connected to the database!");
         let sqlQuery = "SELECT e_mail FROM employees;";
         // let values = [req.body.firstName, req.body.lastName, encryptedEmail, hash, req.body.job, 0];
         // connection.query(sqlQuery, [values], (error, result) => {
@@ -213,7 +211,6 @@ exports.retrieveUserInfo = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        console.log("Connected to the database!");
         connection.query("SELECT * FROM employees WHERE id=?;", req.params.id, (error, result) => { //result est un tableau contenant toutes les lignes retournées
             if (error) throw new Error(error);
             res.status(200).json({
@@ -224,8 +221,6 @@ exports.retrieveUserInfo = (req, res, next) => {
 };
 
 exports.deleteEmployee = (req, res, next) => {
-    console.log("deleteEmployee")
-
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
@@ -234,7 +229,6 @@ exports.deleteEmployee = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        console.log("Connected to the database!");
         connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
             if (error) throw error;
             if (result[0].avatar)
@@ -242,13 +236,7 @@ exports.deleteEmployee = (req, res, next) => {
                 const filename = result[0].avatar.split('/images/')[1];
                 fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
                     if (err) throw err;
-                    console.log('image supprimée');
                 });
-                // if (error) throw new Error(error);
-                // res.status(200).json({
-                //     updatedNumber: result.affectedRows,
-                //     filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-                // });
             }
         });
         connection.query("DELETE FROM employees WHERE id=?",req.params.id , (error, result) => {
@@ -270,35 +258,23 @@ exports.updateEmployee = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        console.log("Connected to the database!");
-
         let firstName = '';
         let lastName = '';
         let job = '';
         let team = '';
         if (req.file)
         {
-            console.log("1")
             firstName = formatDatabaseInput(req.body.first_name);
-            console.log("2")
             lastName = formatDatabaseInput(req.body.last_name);
-            console.log("3")
             job = formatDatabaseInput(req.body.job);
-            console.log("4")
             team = formatDatabaseInput(req.body.team);
-            console.log("5")
         }
         else
         {
-            console.log("6")
             firstName = formatDatabaseInput(req.body.employee.first_name);
-            console.log("7")
             lastName = formatDatabaseInput(req.body.employee.last_name);
-            console.log("8")
             job = formatDatabaseInput(req.body.employee.job);
-            console.log("9")
             team = formatDatabaseInput(req.body.employee.team);
-            console.log("10")
         }
 
         let sqlQuery = "UPDATE employees SET first_name = '";
@@ -309,27 +285,42 @@ exports.updateEmployee = (req, res, next) => {
         {
             sqlQuery += "', avatar = '";
             sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+            sqlQuery += "'";
             connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
                 if (error) throw error;
                 if (result[0].avatar)
                 {
-                    console.log("a previous picture existed")
                     const filename = result[0].avatar.split('/images/')[1];
                     fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
                         if (err) throw err;
-                        console.log('image supprimée');
                     });
                 }
             });
         }
-        sqlQuery += "', job = '";
+        else
+        {
+            if (req.body.employee.removeAvatar)
+            {
+                sqlQuery += "', avatar = NULL";
+                connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
+                    if (error) throw error;
+                    if (result[0].avatar)
+                    {
+                        const filename = result[0].avatar.split('/images/')[1];
+                        fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
+                            if (err) throw err;
+                        });
+                    }
+                });
+            }
+        }
+        sqlQuery += ", job = '";
         sqlQuery += formatDatabaseInput(job);
         sqlQuery += "', team = '";
         sqlQuery += formatDatabaseInput(team);
         sqlQuery += "' WHERE id=";
         sqlQuery += req.params.id;
         sqlQuery += ";"
-        console.log(sqlQuery)
         connection.query(sqlQuery, (error, result) => {
             //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);

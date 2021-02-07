@@ -7,7 +7,7 @@ const MIME_TYPES = {
     'image/jpeg': 'jpeg',
     'image/png': 'png',
 };
-console.log("multer-config.js")
+
 // Cette constante indique où enregistrer l'image ainsi que la création du nom de fichier unique
 const storage = multer.diskStorage(
 {

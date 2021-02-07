@@ -64,11 +64,11 @@
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
           {
-              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
           }
           else
           {
-              throw new Error(CommonFunctions.errorManagement(response.status));
+            throw new Error((CommonFunctions.errorManagement(response.status)));
           }
         })
         .then(response =>

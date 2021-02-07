@@ -48,7 +48,6 @@
     {
       logout()
       {
-        console.log("try to logout here")
         this.$store.commit('SET_AUTHENTICATION', '');
         this.$store.commit('SET_USERID', '');
       },

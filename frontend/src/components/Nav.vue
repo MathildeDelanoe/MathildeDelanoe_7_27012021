@@ -12,7 +12,7 @@
       <router-link to="/" id="logoffText" @click="logout">Se déconnecter</router-link>
       <router-link to="/" id="icon" title="Se déconnecter"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
     </div>
-    <div v-else>
+    <div id="navNotConnected" v-else>
       <router-link to="/signup">S'inscrire</router-link> |
       <router-link to="/">Se connecter</router-link>
     </div>
@@ -91,15 +91,26 @@
     justify-content: space-between;
     align-items: center;
 
-    img {
-      height: 25px;
-    }
-
     a {
       // color: rgb(83,83,83);
       color:white;
       text-decoration: none;
-
+    }
+    img {
+      height: 25px;
+    }
+  }
+  #navConnected{
+    a {
+      &.router-link-exact-active {
+        text-decoration:none;
+        // color:white;
+        // color:rgb(209,81,90);
+      }
+    }
+  }
+  #navNotConnected{
+    a {
       &.router-link-exact-active {
         text-decoration: underline;
         // color:white;

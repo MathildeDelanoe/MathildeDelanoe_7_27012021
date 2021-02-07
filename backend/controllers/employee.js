@@ -25,6 +25,13 @@ schema
   .has().symbols(1)
   .has().not().spaces();
 
+
+function formatDatabaseInput(dataIn)
+{
+    let tmp = dataIn.toLowerCase();
+    return tmp.charAt(0).toUpperCase() + tmp.slice(1);
+}
+
 /* Fonction de vérification du mot de passe
  La fonction prend en argument une chaine de caractères représentant un mot de passe
  Elle renvoie une promesse :
@@ -81,7 +88,7 @@ exports.signup = (req, res, next) => {
         .then(() =>
         {
             // Chiffrement de l'adresse email
-            let encryptedEmail = cryptoJs.AES.encrypt(email, "key").toString();
+            let encryptedEmail = cryptoJs.AES.encrypt(formatDatabaseInput(email), "key").toString();
             // Fonction pour crypter le mot de passe via hash
             bcrypt.hash(password, 10) // 10 itérations
             .then(hash =>
@@ -96,15 +103,15 @@ exports.signup = (req, res, next) => {
                     if (error) throw error;
                     console.log("Connected to the database!");
                     let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, job, is_admin) VALUES ('";
-                    sqlQuery += req.body.firstName;
+                    sqlQuery += formatDatabaseInput(req.body.firstName);
                     sqlQuery += "', '";
-                    sqlQuery += req.body.lastName;
+                    sqlQuery += formatDatabaseInput(req.body.lastName);
                     sqlQuery += "', '";
                     sqlQuery += encryptedEmail;
                     sqlQuery += "', '";
                     sqlQuery += hash;
                     sqlQuery += "', '";
-                    sqlQuery += req.body.job;
+                    sqlQuery += formatDatabaseInput(req.body.job);
                     sqlQuery += "', 0);";
                     connection.query(sqlQuery, (error, result) => {
                         if (error) throw new Error(error);
@@ -146,7 +153,7 @@ exports.login = (req, res, next) => {
                 var bytes  = cryptoJs.AES.decrypt(employee.e_mail, 'key');
                 var originalEmail = bytes.toString(cryptoJs.enc.Utf8);
                 // Comparaison des emails
-                if (originalEmail === req.body.email)
+                if (originalEmail === formatDatabaseInput(req.body.email))
                 {
                     currentEmail = employee.e_mail; // Stockage de l'email crypté
                     break; // Si l'email correspond on sort de la boucle for
@@ -198,17 +205,6 @@ exports.login = (req, res, next) => {
 
 // Exportation du middleware de récupération des infos de l'utilisateur
 exports.retrieveUserInfo = (req, res, next) => {
-    console.log("retrieveUserInfo")
-    // /* La variable 'authorization' de 'req.headers' est un chaîne de caractères qui contient 'bearer xxxxx' 
-    //      où xxxx représente une chaine de caractères correspodant au token. C'est cette information
-    //      que nous récupérons ici
-    //   */
-    // const token =  req.headers.authorization.split(' ')[1];
-    // // Décodage du token à l'aide de la clé utilisée pendant le codage
-    // const decodedToken = jwt.verify(token, process.env.TOKEN_KEY);
-    // // Récupération du userId du token décodé
-    // const userId = decodedToken.userId;
-
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
@@ -218,7 +214,6 @@ exports.retrieveUserInfo = (req, res, next) => {
     connection.connect(error => {
         if (error) throw error;
         console.log("Connected to the database!");
-        // let sqlQuery = "SELECT * FROM employees WHERE id=?;" + req.params.id;
         connection.query("SELECT * FROM employees WHERE id=?;", req.params.id, (error, result) => { //result est un tableau contenant toutes les lignes retournées
             if (error) throw new Error(error);
             res.status(200).json({
@@ -244,7 +239,6 @@ exports.deleteEmployee = (req, res, next) => {
             if (error) throw error;
             if (result[0].avatar)
             {
-                console.log("a previous picture existed")
                 const filename = result[0].avatar.split('/images/')[1];
                 fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
                     if (err) throw err;
@@ -268,39 +262,49 @@ exports.deleteEmployee = (req, res, next) => {
 };
 
 exports.updateEmployee = (req, res, next) => {
-    console.log("updateEmployee")
-    
-    // console.log(req.body)
-    // console.log(req.body.firstName)
-    // console.log(req.body.lastName)
-    // console.log(req.body.job)
-    // console.log(req.file)
-    // // Interrogation de l'existence d'un fichier dans la requête => Signifie que l'image, au moins, a été modifiée
-    // const modifiedEmployee = req.file ?
-    // { // Si l'image a été modifiée, gestion du formData reçu du frontEnd
-    //     ...req.body.employee,
-    //     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    // } : 
-    // { // Seulement du contenu texte a été modifié, la requête présente seulement un contenu JSON
-    //     ...req.body.employee
-    // };
-
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
         password:process.env.DB_PASS,
         database:process.env.DB_NAME
     });
-    // const filename = thing.imageUrl.split('/images/')[1];
-    //   fs.unlink(`images/${filename}`, () => {
     connection.connect(error => {
         if (error) throw error;
         console.log("Connected to the database!");
 
+        let firstName = '';
+        let lastName = '';
+        let job = '';
+        let team = '';
+        if (req.file)
+        {
+            console.log("1")
+            firstName = formatDatabaseInput(req.body.first_name);
+            console.log("2")
+            lastName = formatDatabaseInput(req.body.last_name);
+            console.log("3")
+            job = formatDatabaseInput(req.body.job);
+            console.log("4")
+            team = formatDatabaseInput(req.body.team);
+            console.log("5")
+        }
+        else
+        {
+            console.log("6")
+            firstName = formatDatabaseInput(req.body.employee.first_name);
+            console.log("7")
+            lastName = formatDatabaseInput(req.body.employee.last_name);
+            console.log("8")
+            job = formatDatabaseInput(req.body.employee.job);
+            console.log("9")
+            team = formatDatabaseInput(req.body.employee.team);
+            console.log("10")
+        }
+
         let sqlQuery = "UPDATE employees SET first_name = '";
-        sqlQuery += req.body.firstName;
+        sqlQuery += formatDatabaseInput(firstName);
         sqlQuery += "', last_name = '";
-        sqlQuery += req.body.lastName;
+        sqlQuery += formatDatabaseInput(lastName);
         if (req.file)
         {
             sqlQuery += "', avatar = '";
@@ -315,18 +319,13 @@ exports.updateEmployee = (req, res, next) => {
                         if (err) throw err;
                         console.log('image supprimée');
                     });
-                    // if (error) throw new Error(error);
-                    // res.status(200).json({
-                    //     updatedNumber: result.affectedRows,
-                    //     filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-                    // });
                 }
             });
         }
         sqlQuery += "', job = '";
-        sqlQuery += req.body.job;
+        sqlQuery += formatDatabaseInput(job);
         sqlQuery += "', team = '";
-        sqlQuery += req.body.team;
+        sqlQuery += formatDatabaseInput(team);
         sqlQuery += "' WHERE id=";
         sqlQuery += req.params.id;
         sqlQuery += ";"
@@ -334,10 +333,20 @@ exports.updateEmployee = (req, res, next) => {
         connection.query(sqlQuery, (error, result) => {
             //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);
-            res.status(200).json({
-                updatedNumber: result.affectedRows,
-                filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-            });
+            if (req.file)
+            {
+                res.status(200).json({
+                    updatedNumber: result.affectedRows,
+                    filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+                });
+            }
+            else
+            {
+                res.status(200).json({
+                    updatedNumber: result.affectedRows,
+                    filename: null
+                });
+            }
         });
     });
 };

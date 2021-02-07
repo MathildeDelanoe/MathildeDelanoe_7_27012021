@@ -20,15 +20,14 @@
         </div>
         <div id="validationForm" v-if="this.isProfileUpdateNeeded">
           <label for="lastName">Nom : </label>
-          <input type="text" id="lastName" :value="this.employee.last_name"> <!--v-model="updatedProfile.lastName">-->
+          <input type="text" id="lastName" :value="this.employee.last_name">
           <label for="firstName">Prenom : </label>
-          <input type="text" id="firstName" :value="this.employee.first_name"> <!--v-model="updatedProfile.firstName">-->
+          <input type="text" id="firstName" :value="this.employee.first_name">
           <label for="job">Poste : </label>
-          <input type="text" id="job" :value="this.employee.job"> <!--v-model="updatedProfile.job">-->
+          <input type="text" id="job" :value="this.employee.job">
           <label for="team">Equipe : </label>
-          <input type="text" id="team" :value="this.employee.team"> <!--v-model="updatedProfile.team">-->
+          <input type="text" id="team" :value="this.employee.team">
           <label for="avatar" class="label-file">Avatar</label>
-          <!-- <input type="file" id="avatar" class="input-file" accept=".jpg,.jpeg,.png" :value="this.employee.avatar"> -->
           <input type="file" id="avatar" class="input-file" accept=".jpg,.jpeg,.png">
           <input type="submit" id="submitButton" value="Mettre à jour" @click="sendProfileUpdate()">
         </div>
@@ -43,6 +42,7 @@
   import Nav from '../components/Nav.vue'
   import Avatar  from 'vue-avatar-component'
   import { mapGetters } from 'vuex'
+  import {CommonFunctions} from '../assets/CommonFunctions.js'
 
   export default {
     name: 'Profile',
@@ -58,8 +58,7 @@
         employee: {},
         message: 'Hello',
         avatar: '',
-        isProfileUpdateNeeded: false,
-        updatedProfile: {}
+        isProfileUpdateNeeded: false
       };
     },
     mounted(){
@@ -71,12 +70,8 @@
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
           },
-          // params: {
-          //   'userId': this.getUserId
-          // }
       };
       fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
-      // fetch('http://localhost:3000/api/employee/getOne', options)
       .then(response =>
       {
         if (response.ok && (response.status >= 200 && response.status <= 299))
@@ -85,25 +80,7 @@
         }
         else
         {
-            // S'il y a une erreur, écriture d'un message correspondant à l'erreur
-            let message = [];
-            if (response.status >= 300 && response.status <= 399)
-            {
-                message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
-            }
-            else if (response.status >= 400 && response.status <= 499)
-            {
-                message = 'Erreur liée à l\'utilisation du service web';
-            }
-            else if (response.status >= 500 && response.status <= 599)
-            {
-                message = 'Erreur venant du service web';
-            }
-            else
-            {
-                message = 'Erreur d\'un autre type';
-            }
-            throw new Error(message);
+            throw new Error(CommonFunctions.errorManagement(response.status));
         }
       })
       .then(response => 
@@ -148,38 +125,17 @@
               'Content-Type': 'application/json',
               'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
             },
-            // params: {
-            //   'userId': this.getUserId
-            // }
         };
         fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
         .then(response =>
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
           {
-              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
           }
           else
           {
-              // S'il y a une erreur, écriture d'un message correspondant à l'erreur
-              let message = [];
-              if (response.status >= 300 && response.status <= 399)
-              {
-                  message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
-              }
-              else if (response.status >= 400 && response.status <= 499)
-              {
-                  message = 'Erreur liée à l\'utilisation du service web';
-              }
-              else if (response.status >= 500 && response.status <= 599)
-              {
-                  message = 'Erreur venant du service web';
-              }
-              else
-              {
-                  message = 'Erreur d\'un autre type';
-              }
-              throw new Error(message);
+            throw new Error(CommonFunctions.errorManagement(response.status));
           }
         })
         .then(response => 
@@ -193,15 +149,13 @@
       },
       sendProfileUpdate()
       {
-        console.log("sendProfileUpdate")
         let formInputs = document.querySelectorAll("#validationForm input");
         // Création de l'objet JS de contact avec les informations nécessaires
-        this.updatedProfile = {
-            last_name : formInputs[0].value,
-            first_name : formInputs[1].value,
-            job : formInputs[2].value,
-            team : formInputs[3].value,
-            // avatar : formInputs[4].value
+        let updatedProfile = {
+            last_name : CommonFunctions.formatInput(formInputs[0].value),
+            first_name : CommonFunctions.formatInput(formInputs[1].value),
+            job : CommonFunctions.formatInput(formInputs[2].value),
+            team : CommonFunctions.formatInput(formInputs[3].value),
         };
 
         if(formInputs[4].files.length !== 0)
@@ -215,10 +169,10 @@
         {
           const formData = new FormData();
           // formData.append('employee', this.updatedProfile);
-          formData.append('firstName', this.updatedProfile.first_name);
-          formData.append('lastName', this.updatedProfile.last_name);
-          formData.append('job', this.updatedProfile.job);
-          formData.append('team', this.updatedProfile.team);
+          formData.append('first_name', updatedProfile.first_name);
+          formData.append('last_name', updatedProfile.last_name);
+          formData.append('job', updatedProfile.job);
+          formData.append('team', updatedProfile.team);
           formData.append('avatar', formInputs[4].files[0]);
           options = 
           {
@@ -239,7 +193,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
               },
-              body: JSON.stringify({employee : this.updatedProfile}) // Remplissage du body de la requête avec les informations nécessaires
+              body: JSON.stringify({employee : updatedProfile}) // Remplissage du body de la requête avec les informations nécessaires
           };
         }
         fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
@@ -247,35 +201,18 @@
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
           {
-              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
           }
           else
           {
-              // S'il y a une erreur, écriture d'un message correspondant à l'erreur
-              let message = [];
-              if (response.status >= 300 && response.status <= 399)
-              {
-                  message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
-              }
-              else if (response.status >= 400 && response.status <= 499)
-              {
-                  message = 'Erreur liée à l\'utilisation du service web';
-              }
-              else if (response.status >= 500 && response.status <= 599)
-              {
-                  message = 'Erreur venant du service web';
-              }
-              else
-              {
-                  message = 'Erreur d\'un autre type';
-              }
-              throw new Error(message);
+            throw new Error(CommonFunctions.errorManagement(response.status));
           }
         })
         .then(response => 
         {
-          this.updatedProfile.avatar = response.filename;
-          this.employee = this.formatEmployee(this.updatedProfile);
+          console.log("HERE")
+          updatedProfile.avatar = response.filename;
+          this.employee = this.formatEmployee(updatedProfile);
           
           this.userName = this.employee.first_name + " " + this.employee.last_name;
           if (response.updatedNumber != 1) throw new Error("plus d'un employé a été modifié!");

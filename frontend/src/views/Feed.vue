@@ -57,6 +57,7 @@
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import Avatar  from 'vue-avatar-component'
   import { mapGetters } from 'vuex'
+  import {CommonFunctions} from '../assets/CommonFunctions.js'
   library.add(faTrash)
   library.add(faThumbsUp)
   library.add(faComment)
@@ -97,25 +98,7 @@
         }
         else
         {
-            // S'il y a une erreur, écriture d'un message correspondant à l'erreur
-            let message = [];
-            if (response.status >= 300 && response.status <= 399)
-            {
-                message = 'Erreur de redirection. Le contenu a bougé ou n\'est pas accessible directement';
-            }
-            else if (response.status >= 400 && response.status <= 499)
-            {
-                message = 'Erreur liée à l\'utilisation du service web';
-            }
-            else if (response.status >= 500 && response.status <= 599)
-            {
-                message = 'Erreur venant du service web';
-            }
-            else
-            {
-                message = 'Erreur d\'un autre type';
-            }
-            throw new Error(message);
+            throw new Error(CommonFunctions.errorManagement(response.status));
         }
       })
       .then(response => 

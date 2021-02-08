@@ -7,6 +7,7 @@ const postCtrl = require('../controllers/post');
 
 // Création des routes
 router.post('/save', postCtrl.savePost);
+router.get('/', postCtrl.getAllPost);
 
 // Exportation du router et de ses différentes routes
 module.exports = router;

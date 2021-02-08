@@ -13,18 +13,18 @@
         <input type="file" id="file" class="input-file">
       </div>
     </div>
-    <div id="posted">
+    <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">
       <div id="person_comments">
-        <p> Nom prénom </p>
-        <p> Jour Heure </p>
+        <p> <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30"></avatar> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
+        <p> {{ 'Le ' + singlePost.date.slice(8, 10) + '/' + singlePost.date.slice(5, 7) + '/' + singlePost.date.slice(0, 4) + ' à ' + singlePost.date.slice(11, 13) + 'h' + singlePost.date.slice(14, 16)}} </p>
       </div>
-      <div>
-        <p>Contenu de la publication</p>
+      <div id="postContent">
+        <p>{{ singlePost.text }}</p>
       </div>  
       <div id="icons">
-        <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0</p>
+        <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <font-awesome-icon :icon="['fas', 'trash']" />
+        <p v-if="singlePost.user_id==this.getUserId"><font-awesome-icon :icon="['fas', 'trash']"/></p>
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -38,7 +38,7 @@
         <div>
           <!-- <ul id="messages"></ul> -->
           <form id="formComments" action="">
-            <avatar :fullname="userName" :size="30"></avatar>
+            <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
             <input id="input" placeholder="Votre commentaire" /><button>Envoyer</button>
           </form>
         </div>
@@ -74,45 +74,88 @@
     {
       return {
         userName: '',
-        avatar: ''
+        avatar: '',
+        feedPosts: [],
+        userNamePosted: '',
+        avatarPosted: '',
+        datePosted: ''
       };
     },
     mounted(){
-      // Initialisation des options de la méthode fetch
-      let options = 
-      {
-          method: 'get',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + this.getAuth , // this.auth est récupéré du composant signup/login
-          },
-      };
-      // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
-      fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
-      .then(response =>
-      {
-        if (response.ok && (response.status >= 200 && response.status <= 299))
-        {
-            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-        }
-        else
-        {
-            throw new Error(CommonFunctions.errorManagement(response.status));
-        }
-      })
-      .then(response => 
-      {
-        let employee = this.formatEmployee(response.employee);
-        this.userName = employee.first_name + " " + employee.last_name;
-        this.avatar = employee.avatar;
-      })
-      .catch(error => alert(error));
+      this.getPosts();
+      this.getEmployeeInfo();
     },
     computed:{
-      ...mapGetters(["getAuth", "getUserId"])
+      ...mapGetters(["getAuth", "getUserId"]),
     },
     methods:
     {
+      getPosts(){
+        // Initialisation des options de la méthode fetch
+        let options = 
+        {
+            method: 'get',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.getAuth , // this.auth est récupéré du composant signup/login
+            },
+        };
+        // Envoi de la requête via fetch pour récupérer tous les posts
+        fetch('http://localhost:3000/api/post/', options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+              throw new Error(CommonFunctions.errorManagement(response.status));
+          }
+        })
+        .then(response => 
+        {
+          console.log(response);
+          for (let post of response.posts)
+          {
+            this.userNamePosted = post.first_name + " " + post.last_name;
+            post.avatar = (post.avatar === null)?"": post.avatar;
+            this.feedPosts.push(post);
+          }
+        })
+        .catch(error => alert(error));
+      },
+      getEmployeeInfo(){
+        // Initialisation des options de la méthode fetch
+        let options = 
+        {
+            method: 'get',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.getAuth , // this.auth est récupéré du composant signup/login
+            },
+        };
+        // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
+        fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+              throw new Error(CommonFunctions.errorManagement(response.status));
+          }
+        })
+        .then(response => 
+        {
+          let employee = this.formatEmployee(response.employee);
+          this.userName = employee.first_name + " " + employee.last_name;
+          this.avatar = employee.avatar;
+        })
+        .catch(error => alert(error));
+      },
       formatEmployee(employeeRaw)
       {
         let formattedEmployee = employeeRaw;
@@ -212,6 +255,7 @@
   border:1px solid;
   border-radius:10px;
   margin:auto;
+  margin-bottom:50px;
 }
 #person_comments {
   font-size:0.8em;
@@ -223,6 +267,10 @@
   border:1px solid;
   border-radius:10px 10px 0px 0px;
 }
+#postContent {
+  padding-left:10px;
+}
+
 #icons {
   background-color:rgb(48,66,96);
   // border-radius:0px 0px 10px 10px;

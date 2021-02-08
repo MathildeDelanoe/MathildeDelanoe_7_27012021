@@ -43,3 +43,21 @@ exports.savePost = (req, res, next) => {
         });
     })
 };
+
+exports.getAllPost = (req, res, next) => {
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    // Connection à la base de données
+    connection.connect(error => {
+        if (error) throw error;
+        // Traitement de la requête SQL
+        connection.query("SELECT posts.*, first_name, last_name, avatar FROM posts LEFT JOIN employees ON user_id=employees.id ORDER BY date DESC", (error, result) => {
+            if (error) throw new Error(error);
+            res.status(201).json({ posts: result});
+        });
+    })
+};

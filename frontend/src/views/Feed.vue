@@ -24,7 +24,7 @@
       <div id="icons">
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <p v-if="singlePost.user_id==this.getUserId"><font-awesome-icon :icon="['fas', 'trash']"/></p>
+        <p v-if="singlePost.user_id==this.getUserId"><font-awesome-icon :icon="['fas', 'trash']" @click="deletePost(singlePost.id)"/></p>
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -37,9 +37,9 @@
         </div> -->
         <div>
           <!-- <ul id="messages"></ul> -->
-          <form id="formComments" action="">
+          <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
-            <input id="input" placeholder="Votre commentaire" /><button>Envoyer</button>
+            <input class="input" placeholder="Votre commentaire" /><button>Envoyer</button>
           </form>
         </div>
       </div> 
@@ -91,6 +91,7 @@
     methods:
     {
       getPosts(){
+        this.feedPosts.length = 0; // Nécessité de vider le tableau de posts
         // Initialisation des options de la méthode fetch
         let options = 
         {
@@ -197,6 +198,39 @@
         .then(response =>
         {
           console.log(response);
+        })
+        .catch(error => alert(error))
+      },
+      deletePost(postId)
+      {
+        console.log("Suppression de " + postId)
+        // Initialisation des options de la méthode fetch
+        let options = 
+        {
+            method: 'delete',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+            }
+        };
+        // Envoi de la requête via fetch pour s'enregistrer
+        fetch('http://localhost:3000/api/post/' + postId, options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+            throw new Error((CommonFunctions.errorManagement(response.status)));
+          }
+        })
+        .then(response =>
+        {
+          console.log(response)
+          if (response.deletionNumber != 1) throw new Error("plus d'un post a été supprimé!");
+          console.log("Suppression de " + response.deletionNumber + " post : " + postId);
         })
         .catch(error => alert(error))
       }
@@ -309,13 +343,13 @@
     padding-left:10px;
   }
 }
-#formComments {
+.formComments {
   margin:10px 0px ;
   display:flex;
 }
 
 
-#input {
+.input {
   border-radius:5px 0px 0px 5px;
   padding:5px;
   margin-left:5px;

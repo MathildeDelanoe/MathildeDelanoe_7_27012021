@@ -61,3 +61,25 @@ exports.getAllPost = (req, res, next) => {
         });
     })
 };
+
+exports.delete = (req, res, next) => {
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    console.log("delete post " + req.params.id)
+    // Connection à la base de données
+    connection.connect(error => {
+        if (error) throw error;
+        // Traitement de la requête SQL
+        connection.query("DELETE FROM posts WHERE id=?", req.params.id, (error, result) => {
+            if (error) throw new Error(error);
+            console.log(result)
+            res.status(201).json({ 
+                deletionNumber: result.affectedRows
+            });
+        });
+    })
+};

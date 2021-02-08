@@ -8,6 +8,7 @@ const postCtrl = require('../controllers/post');
 // Création des routes
 router.post('/save', postCtrl.savePost);
 router.get('/', postCtrl.getAllPost);
+router.delete('/:id', postCtrl.delete);
 
 // Exportation du router et de ses différentes routes
 module.exports = router;

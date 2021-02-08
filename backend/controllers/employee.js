@@ -238,7 +238,7 @@ exports.deleteEmployee = (req, res, next) => {
                 });
             }
         });
-        connection.query("DELETE FROM employees WHERE id=?",req.params.id , (error, result) => {
+        connection.query("DELETE FROM employees WHERE id=?", req.params.id, (error, result) => {
             //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);
             res.status(200).json({

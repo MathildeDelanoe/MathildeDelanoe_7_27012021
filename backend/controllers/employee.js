@@ -28,8 +28,9 @@ schema
 
 function formatDatabaseInput(dataIn)
 {
-    let tmp = dataIn.toLowerCase();
-    return tmp.charAt(0).toUpperCase() + tmp.slice(1);
+    let lowercase = dataIn.toLowerCase(); // Met la chaîne en minuscules
+    // Renvoie une chaîne de caractères avec une majuscule au début
+    return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
 }
 
 /* Fonction de vérification du mot de passe
@@ -88,7 +89,7 @@ exports.signup = (req, res, next) => {
         .then(() =>
         {
             // Chiffrement de l'adresse email
-            let encryptedEmail = cryptoJs.AES.encrypt(formatDatabaseInput(email), "key").toString();
+            let encryptedEmail = cryptoJs.AES.encrypt(formatDatabaseInput(email), process.env.EMAIL_KEY).toString();
             // Fonction pour crypter le mot de passe via hash
             bcrypt.hash(password, 10) // 10 itérations
             .then(hash =>
@@ -99,9 +100,11 @@ exports.signup = (req, res, next) => {
                     password:process.env.DB_PASS,
                     database:process.env.DB_NAME
                 });
+                // Connection à la base de données
                 connection.connect(error => {
                     if (error) throw error;
-                    let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, job, is_admin) VALUES ('";
+                    // Construction de la requête SQL
+                    let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, is_admin) VALUES ('";
                     sqlQuery += formatDatabaseInput(req.body.firstName);
                     sqlQuery += "', '";
                     sqlQuery += formatDatabaseInput(req.body.lastName);
@@ -109,12 +112,11 @@ exports.signup = (req, res, next) => {
                     sqlQuery += encryptedEmail;
                     sqlQuery += "', '";
                     sqlQuery += hash;
-                    sqlQuery += "', '";
-                    sqlQuery += formatDatabaseInput(req.body.job);
                     sqlQuery += "', 0);";
-                    connection.query(sqlQuery, (error, result) => {
+                    // Traitement de la requête SQL
+                    connection.query(sqlQuery, (error) => {
                         if (error) throw new Error(error);
-                        res.status(201).json({ message: 'Employé créé !', result: result });
+                        res.status(201).json({ message: 'Employé créé !'});
                     });
                 });
             })
@@ -140,15 +142,12 @@ exports.login = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        let sqlQuery = "SELECT e_mail FROM employees;";
-        // let values = [req.body.firstName, req.body.lastName, encryptedEmail, hash, req.body.job, 0];
-        // connection.query(sqlQuery, [values], (error, result) => {
-        connection.query(sqlQuery, (error, result) => { //result est un tableau contenant toutes les lignes retournées
+        connection.query("SELECT e_mail FROM employees;", (error, result) => { //result est un tableau contenant toutes les lignes retournées
             if (error) throw new Error(error);
             for (let employee of result)
             {
-                // Décrytage de l'email présent danse MongoDB
-                var bytes  = cryptoJs.AES.decrypt(employee.e_mail, 'key');
+                // Décrytage de l'email présent dans la base de données
+                var bytes  = cryptoJs.AES.decrypt(employee.e_mail, process.env.EMAIL_KEY);
                 var originalEmail = bytes.toString(cryptoJs.enc.Utf8);
                 // Comparaison des emails
                 if (originalEmail === formatDatabaseInput(req.body.email))
@@ -281,9 +280,10 @@ exports.updateEmployee = (req, res, next) => {
         sqlQuery += formatDatabaseInput(firstName);
         sqlQuery += "', last_name = '";
         sqlQuery += formatDatabaseInput(lastName);
+        sqlQuery += "'";
         if (req.file)
         {
-            sqlQuery += "', avatar = '";
+            sqlQuery += ", avatar = '";
             sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
             sqlQuery += "'";
             connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
@@ -301,7 +301,7 @@ exports.updateEmployee = (req, res, next) => {
         {
             if (req.body.employee.removeAvatar)
             {
-                sqlQuery += "', avatar = NULL";
+                sqlQuery += ", avatar = NULL";
                 connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
                     if (error) throw error;
                     if (result[0].avatar)

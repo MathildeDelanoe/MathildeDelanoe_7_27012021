@@ -2,7 +2,7 @@
   <body class="login">
     <Nav />
     <table class="form">
-      <tbody class="text-right">
+      <tbody>
           <tr>
             <td><label for="emailLogin">Adresse e-mail : </label></td>
             <td><input type="text" id="emailLogin" required v-model="email"></td>
@@ -59,6 +59,7 @@
             body: JSON.stringify({email : this.email,
                                   password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
         };
+        // Envoi de la requête via fetch pour s'enregistrer
         fetch('http://localhost:3000/api/employee/login', options)
         .then(response =>
         {
@@ -87,10 +88,8 @@
   .form
   {
     padding:30px 30px 10px 30px;
-    // background-color:rgb(175,175,177);
     background-color:rgb(48,66,96);
     border-radius:10px;
-    // color:rgb(83,83,83);
     color:white;
     margin:100px auto 0px auto;
     box-shadow: 5px 5px 5px black;
@@ -124,7 +123,4 @@
     }
 
   }
-
-
-
 </style>

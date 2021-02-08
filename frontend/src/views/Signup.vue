@@ -1,7 +1,7 @@
 <template>
   <body class="signup">
     <Nav />
-
+    <!-- Affichage d'une liste d'erreurs s'il y en a -->
     <div id="error" v-if="formErrors.length != 0">
       <p>Le formulaire contient des erreurs, veuillez les corriger pour pouvoir vous inscrire:</p>
       <ul>
@@ -10,7 +10,7 @@
     </div>
     <div>
       <table class="form">
-        <tbody class="text-right">
+        <tbody>
             <tr>
               <td><label for="lastName">Nom : </label></td>
               <td><input type="text" id="lastName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="lastName"></td>
@@ -18,10 +18,6 @@
             <tr>
               <td><label for="firstName">Prénom : </label></td>
               <td><input type="text" id="firstName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="firstName"></td>
-            </tr>
-            <tr>
-              <td><label for="job">Poste occupé : </label></td>
-              <td><input type="text" id="job" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{3,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="job"></td>
             </tr>
             <tr>
               <td><label for="emailSignup">Adresse e-mail : </label></td>
@@ -59,10 +55,9 @@
     data: function()
     {
       return {
-        formErrors: [],
-        firstName: '',
+        formErrors: [], // Tableau contenant les messages d'erreur de remplissage du formulaire
         lastName: '',
-        job: '',
+        firstName: '',
         email: '',
         password: '',
         confirmationPassword: ''
@@ -70,20 +65,25 @@
     },
     methods:
     {
+      /* Cette fonction vérifie que le formulaire dans son intégralité est rempli c'est-à-dire qu'il n'y a plus aucun champ vide
+         Cette fonction renvoie 'true' si le formulaire est rempli, 'false' sinon
+      */
       isFormFilled()
       {
-        return ((this.firstName.length != 0) && 
-               (this.lastName.length != 0) &&
-               (this.job.length != 0) &&
+        return ((this.lastName.length != 0) &&
+               (this.firstName.length != 0) && 
                (this.email.length != 0) &&
                (this.password.length != 0) &&
                (this.confirmationPassword.length != 0))
       },
-      
+      /* Cette fonction vérifie que le formulaire est correctement rempli.
+         Elle compare notamment les informations saisies avec les pattern définis et vérifie que les deux mots de passe sont identiques
+         Cette fonction renvoie 'true' si le formulaire est correct, 'false' sinon
+      */
       isFormCorrect()
       {
         this.formErrors.length = 0; // Supprime le précédent tableau d'erreurs
-        let isFormCorrect = false;
+        let isCorrect = false;
 
         let lastNameInput = document.getElementById("lastName");
         if (!lastNameInput.checkValidity())
@@ -95,12 +95,6 @@
         if (!firstNameInput.checkValidity())
         {
           this.formErrors.push('Votre prénom ne doit contenir que des lettres');
-        }
-
-        let jobInput = document.getElementById("job");
-        if (!jobInput.checkValidity())
-        {
-          this.formErrors.push('Votre poste ne doit contenir que des lettres');
         }
 
         let emailInput = document.getElementById("emailSignup");
@@ -121,20 +115,22 @@
           this.formErrors.push('Les deux mots de passe diffèrent');
         }
 
-        if (this.formErrors.length == 0)
+        if (this.formErrors.length === 0)
         {
-          isFormCorrect = true;
+          isCorrect = true;
         }
 
-        return isFormCorrect;
+        return isCorrect;
       },
 
+      /* Cette fonction envoie les requêtes de signup au backend */
       sendNewAccountRequest()
       {
         if (!this.isFormCorrect())
         {
           return;
         }
+
         // Initialisation des options de la méthode fetch
         let options = 
         {
@@ -142,12 +138,12 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({firstName: this.firstName,
-                                  lastName : this.lastName,
-                                  job : this.job,
+            body: JSON.stringify({lastName : this.lastName,
+                                  firstName: this.firstName,
                                   email : this.email,
                                   password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
         };
+        // Envoi de la requête via fetch pour s'enregistrer
         fetch('http://localhost:3000/api/employee/signup', options)
         .then(response =>
         {
@@ -172,6 +168,7 @@
                 body: JSON.stringify({email : this.email,
                                       password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
             };
+            // Envoi de la requête via fetch pour se connecter
             fetch('http://localhost:3000/api/employee/login', options)
             .then(response =>
             {

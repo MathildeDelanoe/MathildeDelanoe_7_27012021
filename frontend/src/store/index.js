@@ -14,13 +14,13 @@ export default createStore({
     },
   },
   mutations: {
-    SET_AUTHENTICATION(state, payload)
+    SET_AUTHENTICATION(state, newAuth)
     {
-      state.auth = payload
+      state.auth = newAuth
     },
-    SET_USERID(state, payload)
+    SET_USERID(state, newUserId)
     {
-      state.userId = payload
+      state.userId = newUserId
     }
   },
   actions: {

@@ -1,8 +1,9 @@
 export const CommonFunctions = {
     formatInput: function(dataIn) {
-        let tmp = dataIn.toLowerCase();
-        return tmp.charAt(0).toUpperCase() + tmp.slice(1);
+        let lowercase = dataIn.toLowerCase();
+        return lowercase.charAt(0).toUpperCase() + lowercase.slice(1);
     },
+
     errorManagement: function(errorCode) {
         // S'il y a une erreur, écriture d'un message correspondant à l'erreur
         let message = [];

@@ -39,7 +39,7 @@
         <div>
           <!-- <ul id="messages"></ul> -->
           <form id="formComments" action="">
-            <avatar fullname="Jane Toeyuyi" :size="30"></avatar>
+            <avatar :fullname="userName" :size="30"></avatar>
             <input id="input" placeholder="Votre commentaire" /><button>Envoyer</button>
           </form>
         </div>
@@ -75,7 +75,6 @@
     {
       return {
         userName: '',
-        employee: {},
         avatar: ''
       };
     },
@@ -86,9 +85,10 @@
           method: 'get',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+            'Authorization': 'Bearer ' + this.getAuth , // this.auth est récupéré du composant signup/login
           },
       };
+      // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
       fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
       .then(response =>
       {
@@ -103,9 +103,9 @@
       })
       .then(response => 
       {
-        this.employee = this.formatEmployee(response.employee);
-        this.userName = this.employee.first_name + " " + this.employee.last_name;
-        this.avatar = this.employee.avatar;
+        let employee = this.formatEmployee(response.employee);
+        this.userName = employee.first_name + " " + employee.last_name;
+        this.avatar = employee.avatar;
       })
       .catch(error => alert(error));
     },
@@ -117,10 +117,6 @@
       formatEmployee(employeeRaw)
       {
         let formattedEmployee = employeeRaw;
-        if (formattedEmployee.first_name === null)
-          formattedEmployee.first_name = "Non renseigné";
-        if (formattedEmployee.last_name === null)
-          formattedEmployee.last_name = "Non renseigné";
         if (formattedEmployee.avatar === null)
           formattedEmployee.avatar = "";
         if (formattedEmployee.job === null)

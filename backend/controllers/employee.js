@@ -201,7 +201,7 @@ exports.login = (req, res, next) => {
 };
 
 // Exportation du middleware de récupération des infos de l'utilisateur
-exports.retrieveUserInfo = (req, res, next) => {
+exports.retrieveEmployeeInfo = (req, res, next) => {
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,

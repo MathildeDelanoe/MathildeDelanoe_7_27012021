@@ -8,7 +8,7 @@ const employeeCtrl = require('../controllers/employee');
 // Création des routes
 router.post('/signup', employeeCtrl.signup);
 router.post('/login', employeeCtrl.login);
-router.get('/:id', auth, employeeCtrl.retrieveUserInfo);
+router.get('/:id', auth, employeeCtrl.retrieveEmployeeInfo);
 router.delete('/:id', auth, employeeCtrl.deleteEmployee);
 router.put('/:id', auth, multer, employeeCtrl.updateEmployee);
 

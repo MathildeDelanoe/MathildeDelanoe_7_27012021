@@ -9,7 +9,6 @@
           <p> Prénom : {{ this.employee.first_name }}</p>
           <p> Poste occupé : {{ this.employee.job }}</p>
           <p> Equipe : {{ this.employee.team }}</p>
-          <!-- <p> Mot de passe : </p> -->
           <button @click="deleteAccount"> Supprimer le compte </button>
           <button @click="updateProfile"> Modifier le compte </button>
         </div>
@@ -121,10 +120,6 @@
       formatEmployee(employeeRaw)
       {
         let formattedEmployee = employeeRaw;
-        if (formattedEmployee.first_name === null)
-          formattedEmployee.first_name = "Non renseigné";
-        if (formattedEmployee.last_name === null)
-          formattedEmployee.last_name = "Non renseigné";
         if (formattedEmployee.avatar === null)
           formattedEmployee.avatar = "";
         if (formattedEmployee.job === null || formattedEmployee.job.length===0)

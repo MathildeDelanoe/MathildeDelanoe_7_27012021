@@ -3,14 +3,15 @@
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div id = "navConnected" v-if="isConnected">
-      <router-link to="/profile" @click="goToProfile">
+      <!-- <router-link to="/profile" @click="goToProfile"> -->
+      <router-link to="/profile">
         <div>
           <avatar :fullname="fullName" :image="avatar" id="largeAvatarNav"></avatar>
           <avatar :fullname="fullName" :image="avatar" :size="40" id="smallAvatarNav"></avatar>
         </div>
       </router-link>
       <router-link to="/" id="logoffText" @click="logout">Se déconnecter</router-link>
-      <router-link to="/" id="icon" title="Se déconnecter"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
+      <router-link to="/" id="icon" title="Se déconnecter" @click="logout"><font-awesome-icon :icon="['fas', 'power-off']" /></router-link>
     </div>
     <div id="navNotConnected" v-else>
       <router-link to="/signup">S'inscrire</router-link> |
@@ -25,6 +26,7 @@
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import Avatar  from 'vue-avatar-component'
   library.add(faPowerOff)
+  
   export default {
     name: 'Nav',
 
@@ -51,10 +53,10 @@
         this.$store.commit('SET_AUTHENTICATION', '');
         this.$store.commit('SET_USERID', '');
       },
-      goToProfile()
-      {
-        this.$router.push({ name: 'Profile' });
-      }
+      // goToProfile()
+      // {
+      //   this.$router.push({ name: 'Profile' });
+      // }
     }
   }
 </script>

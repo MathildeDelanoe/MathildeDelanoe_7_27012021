@@ -5,11 +5,10 @@
       <label for="newPost">Publication : </label>
       <div>
         <!-- <textarea id="newPost" name="newPost" rows="15" cols="70" placeholder="Exprimez-vous ... "> -->
-         <textarea id="newPost" name="newPost" placeholder="Exprimez-vous ... ">
-        </textarea>
+        <textarea id="newPost" name="newPost" placeholder="Exprimez-vous ... "></textarea>
       </div>
       <div id="button">
-        <button>Publier</button>
+        <button @click="publishPost">Publier</button>
         <label for="file" class="label-file">Télécharger</label>
         <input type="file" id="file" class="input-file">
       </div>
@@ -124,6 +123,39 @@
         if (formattedEmployee.team === null)
           formattedEmployee.team = "Non renseigné";
         return formattedEmployee;
+      },
+      publishPost()
+      {
+        let postContent = document.getElementById("newPost").value; 
+        // Initialisation des options de la méthode fetch
+        let options = 
+        {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({  employeeId : this.getUserId,
+                                    date : new Date(),
+                                    message : postContent}) // Remplissage du body de la requête avec les informations nécessaires
+        };
+        // Envoi de la requête via fetch pour s'enregistrer
+        fetch('http://localhost:3000/api/post/save', options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+            throw new Error((CommonFunctions.errorManagement(response.status)));
+          }
+        })
+        .then(response =>
+        {
+          console.log(response);
+        })
+        .catch(error => alert(error))
       }
     }
   }

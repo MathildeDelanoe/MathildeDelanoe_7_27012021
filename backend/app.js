@@ -6,6 +6,7 @@ const helmet = require("helmet");
 
 // Importation des routeurs
 const employeeRoutes = require('./routes/employee');
+const postRoutes = require('./routes/post');
 
 // Création de l'application Express
 const app = express();
@@ -29,6 +30,7 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Enregistrement des routes
 app.use('/api/employee', employeeRoutes);
+app.use('/api/post', postRoutes);
 
 //exporter cette application
 module.exports = app;

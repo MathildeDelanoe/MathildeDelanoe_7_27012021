@@ -19,7 +19,7 @@
         <div>
           <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30" id="avatar"></avatar> <p> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
         </div>
-        <p> {{ 'Le ' + singlePost.date.slice(8, 10) + '/' + singlePost.date.slice(5, 7) + '/' + singlePost.date.slice(0, 4) + ' à ' + singlePost.date.slice(11, 13) + 'h' + singlePost.date.slice(14, 16)}} </p>
+        <p> {{ singlePost.formatedDate }} </p>
       </div>
       <div id="postContent">
         <p>{{ singlePost.text }}</p>
@@ -85,7 +85,6 @@
         userName: '',
         avatar: '',
         feedPosts: [],
-        userNamePosted: '',
         avatarPosted: '',
         datePosted: '',
         mapDeletedPost : new Map()
@@ -129,7 +128,6 @@
           console.log(response);
           for (let post of response.posts)
           {
-            this.userNamePosted = post.first_name + " " + post.last_name;
             post.avatar = (post.avatar === null)?"": post.avatar;
             this.feedPosts.push(post);
           }
@@ -189,7 +187,6 @@
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({  employeeId : this.getUserId,
-                                    date : new Date(),
                                     message : postContent}) // Remplissage du body de la requête avec les informations nécessaires
         };
         // Envoi de la requête via fetch pour s'enregistrer
@@ -357,6 +354,7 @@ h1 {
   justify-content:space-around;
 
   p {
+    cursor:pointer;
     margin:0;
   }
 }

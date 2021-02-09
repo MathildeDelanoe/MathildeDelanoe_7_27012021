@@ -13,23 +13,23 @@
         <tbody>
             <tr>
               <td><label for="lastName">Nom : </label></td>
-              <td><input type="text" id="lastName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="lastName"></td>
+              <td><input type="text" id="lastName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" v-model="lastName"></td>
             </tr>
             <tr>
               <td><label for="firstName">Prénom : </label></td>
-              <td><input type="text" id="firstName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" required v-model="firstName"></td>
+              <td><input type="text" id="firstName" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ- ']{0,30}[A-Za-zÀ-ÖØ-öø-ÿ]" v-model="firstName"></td>
             </tr>
             <tr>
               <td><label for="emailSignup">Adresse e-mail : </label></td>
-              <td><input type="email" id="emailSignup" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ-.'_0-9]{0,62}[A-Za-zÀ-ÖØ-öø-ÿ]@groupomania.com" required v-model="email"></td>
+              <td><input type="email" id="emailSignup" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ-.'_0-9]{0,62}[A-Za-zÀ-ÖØ-öø-ÿ]@groupomania.com" v-model="email"></td>
             </tr>
             <tr>
               <td><label for="passwordSignup" class="my-4 mr-3">Mot de passe : </label></td>
-              <td><input type="password" id="passwordSignup" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}" required v-model="password"></td>
+              <td><input type="password" id="passwordSignup" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}" v-model="password"></td>
             </tr>
             <tr>
               <td><label for="confirmpasswordSignup" class="my-4 mr-3">Confirmation du mot de passe : </label></td>
-              <td><input type="password" id="confirmpasswordSignup" required v-model="confirmationPassword"></td>
+              <td><input type="password" id="confirmpasswordSignup" v-model="confirmationPassword"></td>
             </tr>
             <tr>
               <td colspan="2"><input type="submit" id="submitButton" value="S'inscrire" @click="sendNewAccountRequest()" :disabled="!this.isFormFilled()"></td>
@@ -88,25 +88,25 @@
         let lastNameInput = document.getElementById("lastName");
         if (!lastNameInput.checkValidity())
         {
-          this.formErrors.push('Votre nom ne doit contenir que des lettres');
+          this.formErrors.push('Votre nom doit contenir au moins deux lettres et que des lettres (seuls caractères autorisés : espace, tiret(-) et apostrophe)');
         }
 
         let firstNameInput = document.getElementById("firstName");
         if (!firstNameInput.checkValidity())
         {
-          this.formErrors.push('Votre prénom ne doit contenir que des lettres');
+          this.formErrors.push('Votre prénom doit contenir au moins deux lettres et que des lettres (seuls caractères autorisés : espace, tiret(-) et apostrophe)');
         }
 
         let emailInput = document.getElementById("emailSignup");
         if (!emailInput.checkValidity())
         {
-          this.formErrors.push('Votre email doit avoir une extension \'@groupomania.com\' et ne doit contenir que des lettres');
+          this.formErrors.push('Votre email doit avoir une extension \'@groupomania.com\' et doit contenir au moins deux lettres');
         }
 
         let passwordInput = document.getElementById("passwordSignup");
         if (!passwordInput.checkValidity())
         {
-          this.formErrors.push('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial, 1 chiffre et faire plus de 7 caractères');
+          this.formErrors.push('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial (!@#$&*), 1 chiffre et avoir 8 caractères minimum');
         }
 
         let confirmPasswordInput = document.getElementById("confirmpasswordSignup");

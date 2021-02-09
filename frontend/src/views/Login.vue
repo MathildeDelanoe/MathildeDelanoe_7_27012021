@@ -5,11 +5,11 @@
       <tbody>
           <tr>
             <td><label for="emailLogin">Adresse e-mail : </label></td>
-            <td><input type="text" id="emailLogin" required v-model="email"></td>
+            <td><input type="text" id="emailLogin" v-model="email"></td>
           </tr>
           <tr>
             <td><label for="passwordLogin">Mot de passe : </label></td>
-            <td><input type="password" id="passwordLogin" required v-model="password"></td>
+            <td><input type="password" id="passwordLogin" v-model="password"></td>
           </tr>
           <tr>
             <td colspan="2"><input type="submit" id="submitButton" value="Se connecter" @click="loginToAccount()" :disabled=!this.isFormFilled()></td>

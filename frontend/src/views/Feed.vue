@@ -1,6 +1,7 @@
 <template>
   <body class="feed">
     <Nav :isConnected="true" :fullName="userName" :avatar="avatar"/>
+    <h1> Bienvenue {{ userName }} !</h1>
     <div id="post">
       <label for="newPost">Publication : </label>
       <div>
@@ -20,11 +21,11 @@
       </div>
       <div id="postContent">
         <p>{{ singlePost.text }}</p>
-      </div>  
+      </div>
       <div id="icons">
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <p v-if="singlePost.user_id==this.getUserId"><font-awesome-icon :icon="['fas', 'trash']" @click="deletePost(singlePost.id)"/></p>
+        <p v-if="singlePost.user_id==this.getUserId"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -42,9 +43,15 @@
             <input class="input" placeholder="Votre commentaire" /><button>Envoyer</button>
           </form>
         </div>
-      </div> 
+      </div>
+      <div id="deletePostBox" v-if="mapDeletedPost.has(singlePost.id) && mapDeletedPost.get(singlePost.id)==true">
+        <p>Voulez-vous vraiment supprimer votre post?</p>
+        <div>
+          <button @click="deletePost(singlePost.id)">Oui</button>
+          <button @click="setIsDeletePostNeeded(singlePost.id, false)">Non</button>
+        </div>
+      </div>
     </div>
-    
    
   </body>
 </template>
@@ -78,7 +85,8 @@
         feedPosts: [],
         userNamePosted: '',
         avatarPosted: '',
-        datePosted: ''
+        datePosted: '',
+        mapDeletedPost : new Map()
       };
     },
     mounted(){
@@ -198,11 +206,22 @@
         .then(response =>
         {
           console.log(response);
+          this.getPosts();
         })
         .catch(error => alert(error))
       },
+      setIsDeletePostNeeded(postId, value)
+      {
+        this.mapDeletedPost.set(postId, value);
+        if (value === false)
+        {
+          this.mapDeletedPost.delete(postId);
+        }
+        console.log(this.mapDeletedPost)
+      },
       deletePost(postId)
       {
+
         console.log("Suppression de " + postId)
         // Initialisation des options de la méthode fetch
         let options = 
@@ -231,6 +250,8 @@
           console.log(response)
           if (response.deletionNumber != 1) throw new Error("plus d'un post a été supprimé!");
           console.log("Suppression de " + response.deletionNumber + " post : " + postId);
+          this.mapDeletedPost.delete(postId);
+          this.getPosts();
         })
         .catch(error => alert(error))
       }
@@ -239,9 +260,14 @@
 </script>
 
 <style lang="scss">
+h1 {
+  margin-left:40px;
+  margin-top:30px;
+  font-size:1.5em;
+}
 #post {
   width:80%;
-  margin:50px auto;
+  margin:40px auto;
   padding:20px;
   border:1px solid rgb(48,66,96);
   box-shadow:5px 5px 5px black;
@@ -290,6 +316,7 @@
   border-radius:10px;
   margin:auto;
   margin-bottom:50px;
+  position:relative;
 }
 #person_comments {
   font-size:0.8em;
@@ -300,12 +327,17 @@
   justify-content:space-between;
   border:1px solid;
   border-radius:10px 10px 0px 0px;
+  p {
+    display:flex;
+    align-items:center;
+  }
 }
 #postContent {
   padding-left:10px;
 }
 
 #icons {
+  cursor:pointer;
   background-color:rgb(48,66,96);
   // border-radius:0px 0px 10px 10px;
   border:1px solid;
@@ -348,7 +380,6 @@
   display:flex;
 }
 
-
 .input {
   border-radius:5px 0px 0px 5px;
   padding:5px;
@@ -365,7 +396,29 @@ button {
   outline:none;
 }
 
+#deletePostBox {
+  background-color:rgb(217,217,217);
+  position:absolute;
+  width:200px;
+  top:50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  border-radius:5px;
+  padding:20px;
 
+  p {
+    text-align:center;
+  }
+  div {
+    width:100px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+  }
+  button{
+    border-radius:5px;
+  }
+}
 
 
   @media screen and (min-width:1500px) {

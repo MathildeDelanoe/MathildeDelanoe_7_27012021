@@ -16,7 +16,9 @@
     </div>
     <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">
       <div id="person_comments">
-        <p> <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30"></avatar> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
+        <div>
+          <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30" id="avatar"></avatar> <p> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
+        </div>
         <p> {{ 'Le ' + singlePost.date.slice(8, 10) + '/' + singlePost.date.slice(5, 7) + '/' + singlePost.date.slice(0, 4) + ' à ' + singlePost.date.slice(11, 13) + 'h' + singlePost.date.slice(14, 16)}} </p>
       </div>
       <div id="postContent">
@@ -178,7 +180,7 @@
       },
       publishPost()
       {
-        let postContent = document.getElementById("newPost").value; 
+        let postContent = document.getElementById("newPost").value;
         // Initialisation des options de la méthode fetch
         let options = 
         {
@@ -206,6 +208,7 @@
         .then(response =>
         {
           console.log(response);
+          document.getElementById("newPost").value = ''; 
           this.getPosts();
         })
         .catch(error => alert(error))
@@ -331,13 +334,19 @@ h1 {
     display:flex;
     align-items:center;
   }
+  div {
+    display:flex;
+    align-items:center;
+  }
+  #avatar {
+    margin-right:10px;
+  }
 }
 #postContent {
   padding-left:10px;
 }
 
 #icons {
-  cursor:pointer;
   background-color:rgb(48,66,96);
   // border-radius:0px 0px 10px 10px;
   border:1px solid;

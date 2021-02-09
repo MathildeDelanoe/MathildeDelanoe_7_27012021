@@ -27,7 +27,7 @@
       <div id="icons">
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <p v-if="singlePost.user_id==this.getUserId"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
+        <p v-if="singlePost.user_id==this.getUserId || this.isAdmin.data[0]==true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -82,6 +82,7 @@
     data: function()
     {
       return {
+        isAdmin: false,
         userName: '',
         avatar: '',
         feedPosts: [],
@@ -162,6 +163,7 @@
           let employee = this.formatEmployee(response.employee);
           this.userName = employee.first_name + " " + employee.last_name;
           this.avatar = employee.avatar;
+          this.isAdmin = employee.is_admin;
         })
         .catch(error => alert(error));
       },
@@ -422,7 +424,8 @@ button {
     display:flex;
     justify-content:space-between;
   }
-  button{
+  button {
+    cursor:pointer;
     border-radius:5px;
   }
 }

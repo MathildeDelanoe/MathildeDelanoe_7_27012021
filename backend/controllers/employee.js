@@ -257,39 +257,27 @@ exports.updateEmployee = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        let firstName = '';
-        let lastName = '';
         let job = '';
         let team = '';
-        if (req.file)
-        {
-            firstName = formatDatabaseInput(req.body.first_name);
-            lastName = formatDatabaseInput(req.body.last_name);
-            job = formatDatabaseInput(req.body.job);
-            team = formatDatabaseInput(req.body.team);
-        }
-        else
-        {
-            firstName = formatDatabaseInput(req.body.employee.first_name);
-            lastName = formatDatabaseInput(req.body.employee.last_name);
-            job = formatDatabaseInput(req.body.employee.job);
-            team = formatDatabaseInput(req.body.employee.team);
-        }
+        job = (req.file)?formatDatabaseInput(req.body.job):formatDatabaseInput(req.body.employee.job);
+        team = (req.file)?formatDatabaseInput(req.body.team):formatDatabaseInput(req.body.employee.team);
 
-        let sqlQuery = "UPDATE employees SET first_name = '";
-        sqlQuery += formatDatabaseInput(firstName);
-        sqlQuery += "', last_name = '";
-        sqlQuery += formatDatabaseInput(lastName);
+        let sqlQuery = "UPDATE employees SET job = '";
+        sqlQuery += formatDatabaseInput(job);
+        sqlQuery += "', team = '";
+        sqlQuery += formatDatabaseInput(team);
         sqlQuery += "'";
         if (req.file)
         {
             sqlQuery += ", avatar = '";
             sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
             sqlQuery += "'";
+            // Récupération de la précédente image de profil
             connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
                 if (error) throw error;
                 if (result[0].avatar)
                 {
+                    // Il existe une image déjà enregistrée, on la supprime
                     const filename = result[0].avatar.split('/images/')[1];
                     fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
                         if (err) throw err;
@@ -299,8 +287,10 @@ exports.updateEmployee = (req, res, next) => {
         }
         else
         {
+            // La modification de profil n'entraîne pas de changement de photo de profil
             if (req.body.employee.removeAvatar)
             {
+                // L'utilisateur souhaite supprimer sa photo de profil
                 sqlQuery += ", avatar = NULL";
                 connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
                     if (error) throw error;
@@ -314,11 +304,7 @@ exports.updateEmployee = (req, res, next) => {
                 });
             }
         }
-        sqlQuery += ", job = '";
-        sqlQuery += formatDatabaseInput(job);
-        sqlQuery += "', team = '";
-        sqlQuery += formatDatabaseInput(team);
-        sqlQuery += "' WHERE id=";
+        sqlQuery += " WHERE id=";
         sqlQuery += req.params.id;
         sqlQuery += ";"
         connection.query(sqlQuery, (error, result) => {

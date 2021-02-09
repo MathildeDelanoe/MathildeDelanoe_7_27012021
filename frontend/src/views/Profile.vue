@@ -19,14 +19,6 @@
       </div>
       <div id="validationForm" v-if="this.isProfileUpdateNeeded">
         <div>
-          <label for="lastName">Nom : </label>
-          <input type="text" id="lastName" :value="this.employee.last_name">
-        </div>
-        <div>
-          <label for="firstName">Prenom : </label>
-          <input type="text" id="firstName" :value="this.employee.first_name">
-        </div>
-        <div>
           <label for="job">Poste : </label>
           <input type="text" id="job" :value="this.employee.job">
         </div>
@@ -34,6 +26,10 @@
           <label for="team">Equipe : </label>
           <input type="text" id="team" :value="this.employee.team">
         </div>
+        <!-- <div>
+          <label for="password">Mot de passe : </label>
+          <input type="password" id="password">
+        </div> -->
         <div>
           <label for="avatar" class="label-file">Modifier l'avatar : </label>
           <input type="file" id="avatar" class="input-file" accept=".jpg,.jpeg,.png">
@@ -126,6 +122,7 @@
           formattedEmployee.job = "Non renseigné";
         if (formattedEmployee.team === null || formattedEmployee.job.length===0)
           formattedEmployee.team = "Non renseigné";
+        // console.log(formattedEmployee)
         return formattedEmployee;
       },
       updateProfile()
@@ -169,10 +166,8 @@
         let formInputs = document.querySelectorAll("#validationForm input");
         // Création de l'objet JS de contact avec les informations nécessaires
         let updatedProfile = {
-            last_name : CommonFunctions.formatInput(formInputs[0].value),
-            first_name : CommonFunctions.formatInput(formInputs[1].value),
-            job : CommonFunctions.formatInput(formInputs[2].value),
-            team : CommonFunctions.formatInput(formInputs[3].value),
+            job : CommonFunctions.formatInput(formInputs[0].value),
+            team : CommonFunctions.formatInput(formInputs[1].value),
         };
 
         let radioButton= document.getElementsByName('avatarChoice');
@@ -187,15 +182,12 @@
 
         // Initialisation des options de la méthode fetch
         let options ={};
-        if(formInputs[4].files.length !== 0)
+        if(formInputs[2].files.length !== 0)
         {
           const formData = new FormData();
-          // formData.append('employee', this.updatedProfile);
-          formData.append('first_name', updatedProfile.first_name);
-          formData.append('last_name', updatedProfile.last_name);
           formData.append('job', updatedProfile.job);
           formData.append('team', updatedProfile.team);
-          formData.append('avatar', formInputs[4].files[0]);
+          formData.append('avatar', formInputs[2].files[0]);
           options = 
           {
               method: 'put',
@@ -244,9 +236,11 @@
           {
             updatedProfile.avatar = response.filename;
           }
-          this.employee = this.formatEmployee(updatedProfile);
+          updatedProfile = this.formatEmployee(updatedProfile);
+          this.employee.job = updatedProfile.job;
+          this.employee.team = updatedProfile.team;
+          this.employee.avatar = updatedProfile.avatar;
           
-          this.userName = this.employee.first_name + " " + this.employee.last_name;
           if (response.updatedNumber != 1) throw new Error("plus d'un employé a été modifié!");
           this.isProfileUpdateNeeded = false;
         })

@@ -9,13 +9,20 @@
           <p> Prénom : {{ this.employee.first_name }}</p>
           <p> Poste occupé : {{ this.employee.job }}</p>
           <p> Equipe : {{ this.employee.team }}</p>
-          <button @click="deleteAccount"> Supprimer le compte </button>
+          <button @click="setIsDeleteAccountNeeded()"> Supprimer le compte </button>
           <button @click="updateProfile"> Modifier le compte </button>
         </div>
         <div class="avatar">
           <avatar :fullname="userName" :image="this.employee.avatar" id="smallAvatarProfile"></avatar>
           <avatar :fullname="userName" :image="this.employee.avatar" :size="200" id="largeAvatarProfile"></avatar>
         </div>
+        <div id="deleteAccountBox" v-if="this.isDeletedAccount" >
+        <p>Voulez-vous vraiment supprimer votre compte? Dans ce cas, tous vos posts seront supprimés.</p>
+        <div>
+          <button @click="deleteAccount()">Oui</button>
+          <button @click="unsetIsDeleteAccountNeeded()">Non</button>
+        </div>
+      </div>
       </div>
       <div id="validationForm" v-if="this.isProfileUpdateNeeded">
         <div>
@@ -75,7 +82,8 @@
         employee: {},
         message: 'Hello',
         avatar: '',
-        isProfileUpdateNeeded: false
+        isProfileUpdateNeeded: false,
+        isDeletedAccount: false
       };
     },
     mounted(){
@@ -128,6 +136,14 @@
       updateProfile()
       {
         this.isProfileUpdateNeeded = true
+      },
+      setIsDeleteAccountNeeded()
+      {
+        this.isDeletedAccount = true;
+      },
+      unsetIsDeleteAccountNeeded()
+      {
+        this.isDeletedAccount = false;
       },
       deleteAccount()
       {
@@ -265,6 +281,34 @@
 #cart_identity {
   display:flex;
   flex-direction:column-reverse;
+  position:relative;
+
+  button {
+    cursor:pointer;
+  }
+}
+
+#deleteAccountBox{
+  position:absolute;
+  background-color:rgb(217,217,217);
+  color:black;
+  width:70%;
+  top:50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  border-radius:5px;
+  padding:20px;
+
+  div {
+    width:150px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  button {
+    border-radius:5px;
+  }
 }
 
 .avatar {
@@ -285,7 +329,6 @@
     text-decoration:none;
   }
 }
-
 
 #validationForm > div {
  margin:10px;

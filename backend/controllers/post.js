@@ -225,3 +225,36 @@ exports.like = (req, res, next) => {
         });
     })
 };
+
+exports.getAllPostsFromEmployee = (req, res, next) => {
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    // Connection à la base de données
+    connection.connect(error => {
+        if (error) throw error;
+        // It seems to be useless
+        // if (fullNameSplited === '')
+        // {
+        //     connection.end();
+        //     return res.status(403).json({ errorMessage: 'Le champ de recherche ne peut être vide' });
+        // }
+        let fullNameSplited = req.params.fullName.split(' ');
+        let lastName = fullNameSplited[0];
+        let firstName = fullNameSplited[1];
+        connection.query("SELECT posts.id\
+                          FROM posts \
+                          LEFT JOIN employees \
+                          ON posts.employee_id=employees.id \
+                          WHERE posts.post_id IS NULL AND employees.id IN (SELECT id FROM employees WHERE first_name=? AND last_name=?)\
+                          ORDER BY date DESC;",
+                          [firstName, lastName], (error, result) => {
+            if (error) throw new Error(error);
+            connection.end();
+            return res.status(201).json({ postIds: result });
+        });      
+    });
+};

@@ -15,6 +15,13 @@
         <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif" @change="this.showPreview()">
       </div>
     </div>
+    <div id="searchPerson">
+      <p><font-awesome-icon :icon="['fas', 'search']"/>
+        <label for="search"></label>
+        <input type="search" id="search" name="q" placeholder="Rechercher un(e) collègue (Nom Prénom)" aria-label="Recherche dans les posts"> <!-- aria-label? name="q" ?-->
+        <button @click="printSpecificPosts()">Rechercher</button>
+      </p>
+    </div>
     <div id="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
       <div>
         <div id="person_comments">
@@ -76,13 +83,14 @@
 <script>
   import Nav from '../components/Nav.vue'
   import { library } from '@fortawesome/fontawesome-svg-core'
-  import { faTrash, faComment, faThumbsUp} from '@fortawesome/free-solid-svg-icons'
+  import { faTrash, faComment, faThumbsUp, faSearch} from '@fortawesome/free-solid-svg-icons'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import Avatar  from 'vue-avatar-component'
   import {CommonFunctions} from '../assets/CommonFunctions.js'
   library.add(faTrash)
   library.add(faThumbsUp)
   library.add(faComment)
+  library.add(faSearch)
 
   export default
   {
@@ -100,6 +108,8 @@
         userName: '',
         avatar: '',
         feedPosts: [],
+        searchFeedPosts: [],
+        historyFeedPosts: [],
         avatarPosted: '',
         datePosted: '',
         mapDeletedMessage : new Map(),
@@ -388,8 +398,6 @@
             // Mise à jour du nombre de likes du post courant
             this.feedPosts[indexPost].nbLikes--;
           }
-          // this.getPosts();
-          // this.getEmployeeInfo();
         })
         .catch(error => alert(error))
       },
@@ -488,6 +496,66 @@
           this.feedPosts[post_index].comments.push(newComment);
         })
         .catch(error => alert(error))
+      },
+      printSpecificPosts()
+      {
+        let responseStatus;
+        let responseOk;
+        // Récupération de l'input html contenant le champ de recherche
+        let searchedEmployee = document.getElementById("search").value;
+        if (searchedEmployee === '')
+        {
+          alert('Le champ est vide');
+          return;
+        }
+        // Initialisation des options de la méthode fetch
+        let options = 
+        {
+            method: 'get',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+            },
+        };
+        // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
+        fetch('http://localhost:3000/api/post/search/' + searchedEmployee, options)
+        .then(response =>
+        {
+          responseStatus = response.status;
+          responseOk = response.ok;
+          return response.json();
+        })
+        .then(response => 
+        {
+          console.log(response)
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
+          
+          for (let postId of response.postIds)
+          {
+            // console.log("from request : " + postId.id)
+            for (let post of this.feedPosts)
+            {
+            //   console.log("from current posts : " + post.id)
+              this.historyFeedPosts.push(post);
+              if (post.id === postId.id)
+              {
+                console.log('catch')
+                this.searchFeedPosts.push(post);
+              }
+            }
+          }
+          console.log(this.searchFeedPosts)
+          console.log(this.historyFeedPosts)
+          this.feedPosts.length = 0;
+          for (let searchPost of this.searchFeedPosts)
+          {
+            this.feedPosts.push(searchPost);
+          }
+        })
+        .catch(error => alert(error));
       }
     }
   }
@@ -557,6 +625,28 @@ h1 {
 }
 .noLike {
   color: white;
+}
+
+#searchPerson {
+  p {
+    display:flex;
+  }
+  .fa-search {
+    // background-color:rgb(217,217,217);
+    background-color:rgb(48,66,96);
+    color:white;
+    border:1px solid grey;
+    border-right:none;
+    border-radius:5px 0px 0px 5px;
+    padding:6px 10px 6px 10px;
+    align-self:center;
+  }
+}
+
+#search {
+  width:300px;
+  padding-top:6px;
+  padding-bottom:6px;
 }
 
 #posted {

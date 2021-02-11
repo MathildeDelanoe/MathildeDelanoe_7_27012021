@@ -324,3 +324,46 @@ exports.updateEmployee = (req, res, next) => {
         });
     });
 };
+
+exports.updatePassword = (req, res, next) => {
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    // Connection à la base de données
+    connection.connect(error => {
+        if (error) throw error;
+        connection.query('SELECT password, id FROM employees WHERE id=?', req.params.id, (error,result) => {
+            if (error) throw error;
+            bcrypt.compare(req.body.password.oldPassword, result[0].password)
+            .then(valid =>
+            {
+                /* valid est un booléen qui retourne si la comparaison est validée :
+                    - les chaînes de caractères sont identiques => renvoie true
+                    - les chaînes diffèrent => renvoie false
+                */
+                if (!valid)
+                {
+                    // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
+                    return res.status(401).json({ error: 'Mot de passe incorrect !' });
+                }
+                // Le mot de passe est correct, on peut changer par le nouveau
+                bcrypt.hash(req.body.password.newPassword, 10) // 10 itérations
+                .then(hash =>
+                {
+                    let sqlQuery = "UPDATE employees SET password='";
+                    sqlQuery += hash;
+                    sqlQuery += "'";
+                    // Traitement de la requête SQL
+                    connection.query(sqlQuery + ' WHERE id=?', req.params.id, (error) => {
+                        if (error) throw new Error(error);
+                        res.status(201).json({ message: 'Mot de passe modifié !'});
+                    });
+                })
+                .catch(error => res.status(500).json({ error }));
+            })
+        })
+    });
+};

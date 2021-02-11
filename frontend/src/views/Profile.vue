@@ -10,19 +10,39 @@
           <p> Poste occupé : {{ this.employee.job }}</p>
           <p> Equipe : {{ this.employee.team }}</p>
           <button @click="setIsDeleteAccountNeeded()"> Supprimer le compte </button>
-          <button @click="updateProfile"> Modifier le compte </button>
+          <button @click="updateProfile()"> Modifier le compte </button>
+          <button @click="updatePassword()"> Modifier le mot de passe </button>
         </div>
         <div class="avatar">
           <avatar :fullname="userName" :image="this.employee.avatar" id="smallAvatarProfile"></avatar>
           <avatar :fullname="userName" :image="this.employee.avatar" :size="200" id="largeAvatarProfile"></avatar>
         </div>
         <div id="deleteAccountBox" v-if="this.isDeletedAccount" >
-        <p>Voulez-vous vraiment supprimer votre compte? Dans ce cas, tous vos posts seront supprimés.</p>
-        <div>
-          <button @click="deleteAccount()">Oui</button>
-          <button @click="unsetIsDeleteAccountNeeded()">Non</button>
+          <p>Voulez-vous vraiment supprimer votre compte? Dans ce cas, tous vos posts seront supprimés.</p>
+          <div>
+            <button @click="deleteAccount()">Oui</button>
+            <button @click="unsetIsDeleteAccountNeeded()">Non</button>
+          </div>
         </div>
-      </div>
+        <div id="updatePasswordBox" v-if="this.isUpdatePassword" >
+          <p>Modification du mot de passe </p>
+          <div>
+            <label for="oldPassword">Ancien mot de passe : </label>
+            <input type="passsword" id="oldPassword">
+          </div>
+          <div>
+            <label for="newPassword">Nouveau mot de passe : </label>
+            <input type="passsword" id="newPassword">
+          </div>
+          <div>
+            <label for="confirmNewPassword">Confirmation du nouveau mot de passe : </label>
+            <input type="passsword" id="confirmNewPassword">
+          </div>
+          <div>
+            <button @click="sendPasswordUpdate()">Modifier</button>
+            <button @click="unsetIsUpdatePassword()">Retour</button>
+          </div>
+        </div>
       </div>
       <div id="validationForm" v-if="this.isProfileUpdateNeeded">
         <div>
@@ -33,10 +53,6 @@
           <label for="team">Equipe : </label>
           <input type="text" id="team" :value="this.employee.team">
         </div>
-        <!-- <div>
-          <label for="password">Mot de passe : </label>
-          <input type="password" id="password">
-        </div> -->
         <div>
           <label for="avatar" class="label-file">Modifier l'avatar : </label>
           <input type="file" id="avatar" class="input-file" accept=".jpg,.jpeg,.png">
@@ -83,7 +99,8 @@
         message: 'Hello',
         avatar: '',
         isProfileUpdateNeeded: false,
-        isDeletedAccount: false
+        isDeletedAccount: false,
+        isUpdatePassword: false
       };
     },
     mounted(){
@@ -133,9 +150,58 @@
         // console.log(formattedEmployee)
         return formattedEmployee;
       },
+      updatePassword()
+      {
+        this.isUpdatePassword = true;
+      },
+      unsetIsUpdatePassword()
+      {
+        this.isUpdatePassword = false;
+      },
+      sendPasswordUpdate()
+      {
+         let formInputs = document.querySelectorAll("#updatePasswordBox input");
+        // Création de l'objet JS de contact avec les informations nécessaires
+        let passwords= {
+            oldPassword : formInputs[0].value,
+            newPassword : formInputs[1].value,
+            confPassword : formInputs[2].value,
+        };
+        if (passwords.newPassword !== passwords.confPassword)
+        {
+          alert('Les deux nouveaux mots de passes sont différents!')
+          return;
+        }
+        let options =
+        {
+          method: 'put',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+            },
+            body: JSON.stringify({password : passwords}) // Remplissage du body de la requête avec les informations nécessaires
+        };
+        fetch('http://localhost:3000/api/employee/password/' + this.getUserId, options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+            throw new Error(CommonFunctions.errorManagement(response.status));
+          }
+        })
+        .then(() => 
+        {
+          this.unsetIsUpdatePassword();
+        })
+        .catch(error => alert(error));
+      },
       updateProfile()
       {
-        this.isProfileUpdateNeeded = true
+        this.isProfileUpdateNeeded = true;
       },
       setIsDeleteAccountNeeded()
       {
@@ -276,21 +342,21 @@
     color:white;
     border-radius:10px;
     box-shadow: 5px 5px 5px black;
+    position:relative;
 }
   
 #cart_identity {
   display:flex;
   flex-direction:column-reverse;
-  position:relative;
 
   button {
     cursor:pointer;
   }
 }
 
-#deleteAccountBox{
+#deleteAccountBox {
   position:absolute;
-  background-color:rgb(217,217,217);
+  background-color:rgba(217,217,217,0.9);
   color:black;
   width:70%;
   top:50%;
@@ -309,6 +375,36 @@
   button {
     border-radius:5px;
   }
+}
+
+#updatePasswordBox {
+  position:absolute;
+  background-color:rgba(217,217,217,0.9);
+  color:black;
+  width:80%;
+  top:50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+  border-radius:5px;
+  padding:10px;
+
+  p {
+    text-align:center;
+    font-weight: bold;;
+  }
+
+  div {
+    margin:10px;
+
+  }
+  div:last-child {
+    display:flex;
+    justify-content:space-around;
+  }
+  button {
+    border-radius:5px;
+  }
+
 }
 
 .avatar {

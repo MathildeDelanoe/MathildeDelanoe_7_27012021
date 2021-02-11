@@ -11,6 +11,7 @@ router.post('/login', employeeCtrl.login);
 router.get('/:id', auth, employeeCtrl.retrieveEmployeeInfo);
 router.delete('/:id', auth, employeeCtrl.deleteEmployee);
 router.put('/:id', auth, multer, employeeCtrl.updateEmployee);
+router.put('/password/:id', auth, employeeCtrl.updatePassword);
 
 // Exportation du router et de ses différentes routes
 module.exports = router;

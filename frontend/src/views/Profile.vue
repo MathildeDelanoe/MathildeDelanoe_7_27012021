@@ -32,7 +32,7 @@
           </div>
           <div>
             <label for="newPassword">Nouveau mot de passe : </label>
-            <input type="passsword" id="newPassword">
+            <input type="passsword" id="newPassword" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}">
           </div>
           <div>
             <label for="confirmNewPassword">Confirmation du nouveau mot de passe : </label>
@@ -160,13 +160,18 @@
       },
       sendPasswordUpdate()
       {
-         let formInputs = document.querySelectorAll("#updatePasswordBox input");
+        let formInputs = document.querySelectorAll("#updatePasswordBox input");
         // Création de l'objet JS de contact avec les informations nécessaires
         let passwords= {
             oldPassword : formInputs[0].value,
             newPassword : formInputs[1].value,
             confPassword : formInputs[2].value,
         };
+        if (!formInputs[1].checkValidity())
+        {
+          alert('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial (!@#$&*), 1 chiffre et avoir 8 caractères minimum')
+          return;
+        }
         if (passwords.newPassword !== passwords.confPassword)
         {
           alert('Les deux nouveaux mots de passes sont différents!')

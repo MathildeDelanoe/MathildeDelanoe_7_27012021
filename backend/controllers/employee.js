@@ -304,10 +304,7 @@ exports.updateEmployee = (req, res, next) => {
                 });
             }
         }
-        sqlQuery += " WHERE id=";
-        sqlQuery += req.params.id;
-        sqlQuery += ";"
-        connection.query(sqlQuery, (error, result) => {
+        connection.query(sqlQuery + " WHERE id=?;", req.params.id, (error, result) => {
             //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);
             if (req.file)

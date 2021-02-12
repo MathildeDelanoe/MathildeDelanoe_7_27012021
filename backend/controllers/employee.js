@@ -90,41 +90,53 @@ exports.signup = (req, res, next) => {
         {
             // Chiffrement de l'adresse email
             let encryptedEmail = cryptoJs.AES.encrypt(formatDatabaseInput(email), process.env.EMAIL_KEY).toString();
-            // Fonction pour crypter le mot de passe via hash
-            bcrypt.hash(password, 10) // 10 itérations
-            .then(hash =>
-            {
-                let connection = mysql.createConnection({
-                    host:process.env.DB_HOST,
-                    user:process.env.DB_USER,
-                    password:process.env.DB_PASS,
-                    database:process.env.DB_NAME
-                });
-                // Connection à la base de données
-                connection.connect(error => {
-                    if (error) throw error;
-                    // Construction de la requête SQL
-                    let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, is_admin) VALUES ('";
-                    sqlQuery += formatDatabaseInput(req.body.firstName);
-                    sqlQuery += "', '";
-                    sqlQuery += formatDatabaseInput(req.body.lastName);
-                    sqlQuery += "', '";
-                    sqlQuery += encryptedEmail;
-                    sqlQuery += "', '";
-                    sqlQuery += hash;
-                    sqlQuery += "', 0);";
-                    // Traitement de la requête SQL
-                    connection.query(sqlQuery, (error) => {
-                        if (error) throw new Error(error);
-                        res.status(201).json({ message: 'Employé créé !'});
+            let connection = mysql.createConnection({
+                host:process.env.DB_HOST,
+                user:process.env.DB_USER,
+                password:process.env.DB_PASS,
+                database:process.env.DB_NAME
+            });
+            connection.connect(error => {
+                if (error) throw error;
+                connection.query("SELECT e_mail FROM employees;", (error, result) => { //result est un tableau contenant toutes les lignes retournées
+                    if (error) throw new Error(error);
+                    for (let employee of result)
+                    {
+                        // Décrytage de l'email présent dans la base de données
+                        var bytes  = cryptoJs.AES.decrypt(employee.e_mail, process.env.EMAIL_KEY);
+                        var originalEmail = bytes.toString(cryptoJs.enc.Utf8);
+                        // Comparaison des emails
+                        if (originalEmail === formatDatabaseInput(email))
+                        {
+                            return res.status(403).json({ error: 'Email déjà utilisé'});
+                        }
+                    }
+                    // Fonction pour crypter le mot de passe via hash
+                    bcrypt.hash(password, 10) // 10 itérations
+                    .then(hash =>
+                    {
+                        // Construction de la requête SQL
+                        let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, is_admin) VALUES ('";
+                        sqlQuery += formatDatabaseInput(req.body.firstName);
+                        sqlQuery += "', '";
+                        sqlQuery += formatDatabaseInput(req.body.lastName);
+                        sqlQuery += "', '";
+                        sqlQuery += encryptedEmail;
+                        sqlQuery += "', '";
+                        sqlQuery += hash;
+                        sqlQuery += "', 0);";
+                        // Traitement de la requête SQL
+                        connection.query(sqlQuery, (error) => {
+                            if (error) throw new Error(error);
+                            res.status(201).json({ message: 'Employé créé !'});
+                        });
                     });
                 });
             })
-            .catch(error => res.status(500).json({ error }));
         })
-        .catch((error) => {res.status(403).json({error});})
+        .catch(() => {res.status(403).json({error})})
     )
-    .catch((error => res.status(500).json({ error })))
+    .catch(error => {res.status(500).json({ error })})
 };
 
 // Création du middleware de connexion des utilisateurs

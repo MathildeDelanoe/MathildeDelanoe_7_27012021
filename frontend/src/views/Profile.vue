@@ -109,17 +109,14 @@
       this.lsEmpId = localStorage.getItem('employeeId');
       if (this.lsAuth === null || this.lsEmpId === null)
       {
-        console.log('utilisateur non reconnu -> Retour au login')
         this.$router.push({ name: 'Login' });
         return;
       }
       if (this.lsAuth.length === 0 || this.lsEmpId.length === 0)
       {
-        console.log('utilisateur non reconnu -> Retour au login')
         this.$router.push({ name: 'Login' });
         return;
       }
-      console.log("L'employé " + this.lsEmpId + ' est connecté')
       // Initialisation des options de la méthode fetch
       let options = 
       {
@@ -172,6 +169,8 @@
       },
       sendPasswordUpdate()
       {
+        let responseStatus;
+        let responseOk;
         let formInputs = document.querySelectorAll("#updatePasswordBox input");
         // Création de l'objet JS de contact avec les informations nécessaires
         let passwords= {
@@ -201,17 +200,16 @@
         fetch('http://localhost:3000/api/employee/password/' + this.lsEmpId, options)
         .then(response =>
         {
-          if (response.ok && (response.status >= 200 && response.status <= 299))
-          {
-            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-          }
-          else
-          {
-            throw new Error(CommonFunctions.errorManagement(response.status));
-          }
+          responseStatus = response.status;
+          responseOk = response.ok;
+          return response.json();
         })
-        .then(() => 
+        .then((response) => 
         {
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
           this.unsetIsUpdatePassword();
         })
         .catch(error => alert(error));

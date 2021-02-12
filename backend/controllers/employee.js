@@ -48,7 +48,7 @@ function checkPassword(password)
         }
         else
         {
-            reject('Votre mot de passe ne remplit pas les critères');
+            reject(false);
         }
     });
 }
@@ -74,7 +74,7 @@ function checkEmail(email)
         }
         else
         {
-            reject('Votre email ne remplit pas les critères');
+            reject(false);
         }
     });
 }
@@ -108,7 +108,7 @@ exports.signup = (req, res, next) => {
                         // Comparaison des emails
                         if (originalEmail === formatDatabaseInput(email))
                         {
-                            return res.status(403).json({ error: 'Email déjà utilisé'});
+                            return res.status(403).json({ errorMessage: 'Email déjà utilisé'});
                         }
                     }
                     // Fonction pour crypter le mot de passe via hash
@@ -134,9 +134,9 @@ exports.signup = (req, res, next) => {
                 });
             })
         })
-        .catch(() => {res.status(403).json({error})})
+        .catch(() => {res.status(403).json({ errorMessage: 'Votre mot de passe ne remplit pas les critères' })})
     )
-    .catch(error => {res.status(500).json({ error })})
+    .catch(() => {res.status(500).json({ errorMessage: 'Votre email ne remplit pas les critères' })})
 };
 
 // Création du middleware de connexion des utilisateurs
@@ -183,7 +183,7 @@ exports.login = (req, res, next) => {
                         if (!valid)
                         {
                             // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
-                            return res.status(401).json({ error: 'Mot de passe incorrect !' });
+                            return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                         }
                         /* Le mot de passe est correct.
                             Envoi d'un objet json qui contient l'identifiant de l'utilisateur et un token d'authentification
@@ -197,15 +197,15 @@ exports.login = (req, res, next) => {
                             )
                         });
                     })
-                    .catch(error => res.status(500).json({ error }));
+                    .catch(() => res.status(500).json({ errorMessage: 'brypt erreur' }));
                 }
                 else if (result.length == 0)
                 {
-                    res.status(401).json({ message: "Adresse mail non reconnue!" });
+                    res.status(401).json({ errorMessage: "Adresse mail non reconnue!" });
                 }
                 else  // (result.length > 1)
                 {
-                    res.status(401).json({ message: "Plusieurs adresses email reconnues!" });
+                    res.status(401).json({ errorMessage: "Plusieurs adresses email reconnues!" });
                 }
             });
         });
@@ -359,7 +359,7 @@ exports.updatePassword = (req, res, next) => {
                 if (!valid)
                 {
                     // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
-                    return res.status(401).json({ error: 'Mot de passe incorrect !' });
+                    return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                 }
                 // Le mot de passe est correct, on peut changer par le nouveau
                 bcrypt.hash(req.body.password.newPassword, 10) // 10 itérations
@@ -374,7 +374,7 @@ exports.updatePassword = (req, res, next) => {
                         res.status(201).json({ message: 'Mot de passe modifié !'});
                     });
                 })
-                .catch(error => res.status(500).json({ error }));
+                .catch(() => res.status(500).json({ errorMessage: 'hash erreur' }));
             })
         })
     });

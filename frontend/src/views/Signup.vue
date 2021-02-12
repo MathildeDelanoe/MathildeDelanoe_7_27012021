@@ -24,11 +24,11 @@
               <td><input type="email" id="emailSignup" pattern="[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ-.'_0-9]{0,62}[A-Za-zÀ-ÖØ-öø-ÿ]@groupomania.com" v-model="email"></td>
             </tr>
             <tr>
-              <td><label for="passwordSignup" class="my-4 mr-3">Mot de passe : </label></td>
+              <td><label for="passwordSignup">Mot de passe : </label></td>
               <td><input type="password" id="passwordSignup" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}" v-model="password"></td>
             </tr>
             <tr>
-              <td><label for="confirmpasswordSignup" class="my-4 mr-3">Confirmation du mot de passe : </label></td>
+              <td><label for="confirmpasswordSignup">Confirmation du mot de passe : </label></td>
               <td><input type="password" id="confirmpasswordSignup" v-model="confirmationPassword"></td>
             </tr>
             <tr>
@@ -70,12 +70,10 @@
       {
         if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0)
         {
-          console.log('utilisateur déjà loggué -> Retour au feed')
           this.$router.push({ name: 'Feed' });
           return;
         }
       }
-      console.log("L'utilisateur n'est pas connecté")
     },
     methods:
     {
@@ -140,6 +138,8 @@
       /* Cette fonction envoie les requêtes de signup au backend */
       sendNewAccountRequest()
       {
+        let responseStatus;
+        let responseOk;
         if (!this.isFormCorrect())
         {
           return;
@@ -161,17 +161,16 @@
         fetch('http://localhost:3000/api/employee/signup', options)
         .then(response =>
         {
-          if (response.ok && (response.status >= 200 && response.status <= 299))
-          {
-              return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-          }
-          else
-          {
-              throw new Error(CommonFunctions.errorManagement(response.status));
-          }
+          responseStatus = response.status;
+          responseOk = response.ok;
+          return response.json();
         })
-        .then(() =>
+        .then((response) =>
         {
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
           this.$router.push({ name: 'Login', params: {emailFromSignup: this.email, passwordFromSignup: this.password} });
         })
         .catch(error => alert(error))

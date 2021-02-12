@@ -57,12 +57,10 @@
       {
         if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0)
         {
-          console.log('utilisateur déjà loggué -> Retour au feed')
           this.$router.push({ name: 'Feed' });
           return;
         }
       }
-      console.log("L'utilisateur n'est pas connecté")
       if (this.emailFromSignup.length !== 0 && this.passwordFromSignup.length !== 0)
       {
         this.loginToAccount(this.emailFromSignup, this.passwordFromSignup);
@@ -77,6 +75,8 @@
       },
       loginToAccount(email_in, password_in)
       {
+        let responseStatus;
+        let responseOk;
         // Initialisation des options de la méthode fetch
         let options = 
         {
@@ -91,17 +91,16 @@
         fetch('http://localhost:3000/api/employee/login', options)
         .then(response =>
         {
-          if (response.ok && (response.status >= 200 && response.status <= 299))
-          {
-            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-          }
-          else
-          {
-            throw new Error((CommonFunctions.errorManagement(response.status)));
-          }
+          responseStatus = response.status;
+          responseOk = response.ok;
+          return response.json();
         })
         .then(response =>
         {
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
           localStorage.setItem('auth', response.token);
           localStorage.setItem('employeeId', response.userId);
           this.$router.push({ name: 'Feed' });

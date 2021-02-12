@@ -21,7 +21,6 @@ exports.savePost = (req, res, next) => {
         sqlQuery += "', '";
         sqlQuery += req.body.message;
         sqlQuery += "', NOW(), 0);";
-        console.log(sqlQuery)
         // Traitement de la requête SQL
         connection.query(sqlQuery, (error) => {
             if (error) throw new Error(error);
@@ -55,14 +54,12 @@ exports.delete = (req, res, next) => {
         password:process.env.DB_PASS,
         database:process.env.DB_NAME
     });
-    console.log("delete post " + req.params.id)
     // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
         // Traitement de la requête SQL
         connection.query("DELETE FROM posts WHERE id=?", req.params.id, (error, result) => {
             if (error) throw new Error(error);
-            console.log(result)
             res.status(201).json({ 
                 deletionNumber: result.affectedRows
             });

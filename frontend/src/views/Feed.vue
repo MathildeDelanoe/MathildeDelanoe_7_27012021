@@ -98,17 +98,14 @@
       this.lsEmpId = localStorage.getItem('employeeId');
       if (this.lsAuth === null || this.lsEmpId === null)
       {
-        console.log('utilisateur non reconnu -> Retour au login')
         this.$router.push({ name: 'Login' });
         return;
       }
       if (this.lsAuth.length === 0 || this.lsEmpId.length === 0)
       {
-        console.log('utilisateur non reconnu -> Retour au login')
         this.$router.push({ name: 'Login' });
         return;
       }
-      console.log("L'employé " + this.lsEmpId + ' est connecté')
       this.getPosts();
       this.getEmployeeInfo();
     },
@@ -140,7 +137,6 @@
         })
         .then(response => 
         {
-          console.log(response);
           for (let post of response.posts)
           {
             post.avatar = (post.avatar === null)?"": post.avatar;
@@ -218,9 +214,8 @@
             throw new Error((CommonFunctions.errorManagement(response.status)));
           }
         })
-        .then(response =>
+        .then(() =>
         {
-          console.log(response);
           document.getElementById("newPost").value = ''; 
           this.getPosts();
         })
@@ -233,12 +228,9 @@
         {
           this.mapDeletedPost.delete(postId);
         }
-        console.log(this.mapDeletedPost)
       },
       deletePost(postId)
       {
-
-        console.log("Suppression de " + postId)
         // Initialisation des options de la méthode fetch
         let options = 
         {
@@ -263,9 +255,7 @@
         })
         .then(response =>
         {
-          console.log(response)
           if (response.deletionNumber != 1) throw new Error("plus d'un post a été supprimé!");
-          console.log("Suppression de " + response.deletionNumber + " post : " + postId);
           this.mapDeletedPost.delete(postId);
           this.getPosts();
         })

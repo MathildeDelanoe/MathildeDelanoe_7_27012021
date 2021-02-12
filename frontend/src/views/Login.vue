@@ -12,7 +12,7 @@
             <td><input type="password" id="passwordLogin" v-model="password"></td>
           </tr>
           <tr>
-            <td colspan="2"><input type="submit" id="submitButton" value="Se connecter" @click="loginToAccount()" :disabled=!this.isFormFilled()></td>
+            <td colspan="2"><input type="submit" id="submitButton" value="Se connecter" @click="loginToAccount(this.email, this.password)" :disabled=!this.isFormFilled()></td>
           </tr>
           <tr>
             <td colspan="2"><span>Pas de compte? <router-link to="/signup">S'inscrire</router-link></span></td>
@@ -40,6 +40,34 @@
         password: '',
       };
     },
+    props: {
+      emailFromSignup: {
+        type: String,
+        default: ''
+      },
+      passwordFromSignup: {
+        type: String,
+        default: ''
+      }
+    },
+    mounted(){
+      this.lsAuth = localStorage.getItem('auth');
+      this.lsEmpId = localStorage.getItem('employeeId');
+      if (this.lsAuth !== null && this.lsEmpId !== null)
+      {
+        if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0)
+        {
+          console.log('utilisateur déjà loggué -> Retour au feed')
+          this.$router.push({ name: 'Feed' });
+          return;
+        }
+      }
+      console.log("L'utilisateur n'est pas connecté")
+      if (this.emailFromSignup.length !== 0 && this.passwordFromSignup.length !== 0)
+      {
+        this.loginToAccount(this.emailFromSignup, this.passwordFromSignup);
+      }
+    },
     methods:
     {
       isFormFilled()
@@ -47,7 +75,7 @@
         return ((this.email.length != 0) &&
                (this.password.length != 0))
       },
-      loginToAccount()
+      loginToAccount(email_in, password_in)
       {
         // Initialisation des options de la méthode fetch
         let options = 
@@ -56,8 +84,8 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({email : this.email,
-                                  password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
+            body: JSON.stringify({email : email_in,
+                                  password : password_in}) // Remplissage du body de la requête avec les informations nécessaires
         };
         // Envoi de la requête via fetch pour s'enregistrer
         fetch('http://localhost:3000/api/employee/login', options)
@@ -74,8 +102,8 @@
         })
         .then(response =>
         {
-          this.$store.commit('SET_AUTHENTICATION', response.token);
-          this.$store.commit('SET_USERID', response.userId);
+          localStorage.setItem('auth', response.token);
+          localStorage.setItem('employeeId', response.userId);
           this.$router.push({ name: 'Feed' });
         })
         .catch(error => alert(error))

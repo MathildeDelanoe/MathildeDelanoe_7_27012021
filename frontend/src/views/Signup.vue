@@ -63,6 +63,20 @@
         confirmationPassword: ''
       };
     },
+    mounted(){
+      this.lsAuth = localStorage.getItem('auth');
+      this.lsEmpId = localStorage.getItem('employeeId');
+      if (this.lsAuth !== null && this.lsEmpId !== null)
+      {
+        if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0)
+        {
+          console.log('utilisateur déjà loggué -> Retour au feed')
+          this.$router.push({ name: 'Feed' });
+          return;
+        }
+      }
+      console.log("L'utilisateur n'est pas connecté")
+    },
     methods:
     {
       /* Cette fonction vérifie que le formulaire dans son intégralité est rempli c'est-à-dire qu'il n'y a plus aucun champ vide
@@ -158,35 +172,7 @@
         })
         .then(() =>
         {
-            // Initialisation des options de la méthode fetch
-            let options = 
-            {
-                method: 'post',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({email : this.email,
-                                      password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
-            };
-            // Envoi de la requête via fetch pour se connecter
-            fetch('http://localhost:3000/api/employee/login', options)
-            .then(response =>
-            {
-              if (response.ok && (response.status >= 200 && response.status <= 299))
-              {
-                  return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-              }
-              else
-              {
-                  throw new Error(CommonFunctions.errorManagement(response.status));
-              }
-            })
-            .then(response => 
-            {
-              this.$store.commit('SET_AUTHENTICATION', response.token);
-              this.$store.commit('SET_USERID', response.userId);
-              this.$router.push({ name: 'Feed' });
-            })
+          this.$router.push({ name: 'Login', params: {emailFromSignup: this.email, passwordFromSignup: this.password} });
         })
         .catch(error => alert(error))
       }

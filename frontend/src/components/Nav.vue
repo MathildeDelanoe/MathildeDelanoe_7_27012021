@@ -3,7 +3,6 @@
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div id = "navConnected" v-if="isConnected">
-      <!-- <router-link to="/profile" @click="goToProfile"> -->
       <router-link to="/profile">
         <div>
           <avatar :fullname="fullName" :image="avatar" id="largeAvatarNav"></avatar>
@@ -50,13 +49,8 @@
     {
       logout()
       {
-        this.$store.commit('SET_AUTHENTICATION', '');
-        this.$store.commit('SET_USERID', '');
+        localStorage.clear(); // Suppression des identifiants de l'employé
       },
-      // goToProfile()
-      // {
-      //   this.$router.push({ name: 'Profile' });
-      // }
     }
   }
 </script>

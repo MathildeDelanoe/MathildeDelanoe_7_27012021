@@ -27,7 +27,7 @@
       <div id="icons">
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <p v-if="singlePost.user_id==this.getUserId || this.isAdmin.data[0]==true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
+        <p v-if="singlePost.user_id==this.lsEmpId || this.isAdmin.data[0]==true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -64,7 +64,6 @@
   import { faTrash, faComment, faThumbsUp} from '@fortawesome/free-solid-svg-icons'
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import Avatar  from 'vue-avatar-component'
-  import { mapGetters } from 'vuex'
   import {CommonFunctions} from '../assets/CommonFunctions.js'
   library.add(faTrash)
   library.add(faThumbsUp)
@@ -88,15 +87,30 @@
         feedPosts: [],
         avatarPosted: '',
         datePosted: '',
-        mapDeletedPost : new Map()
+        mapDeletedPost : new Map(),
+        lsAuth: '',
+        lsEmpId: ''
       };
     },
     mounted(){
+      // Vérification que l'employé est connecté (présence dans le local storage de ces informations)
+      this.lsAuth = localStorage.getItem('auth');
+      this.lsEmpId = localStorage.getItem('employeeId');
+      if (this.lsAuth === null || this.lsEmpId === null)
+      {
+        console.log('utilisateur non reconnu -> Retour au login')
+        this.$router.push({ name: 'Login' });
+        return;
+      }
+      if (this.lsAuth.length === 0 || this.lsEmpId.length === 0)
+      {
+        console.log('utilisateur non reconnu -> Retour au login')
+        this.$router.push({ name: 'Login' });
+        return;
+      }
+      console.log("L'employé " + this.lsEmpId + ' est connecté')
       this.getPosts();
       this.getEmployeeInfo();
-    },
-    computed:{
-      ...mapGetters(["getAuth", "getUserId"]),
     },
     methods:
     {
@@ -108,7 +122,7 @@
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.getAuth , // this.auth est récupéré du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
             },
         };
         // Envoi de la requête via fetch pour récupérer tous les posts
@@ -142,11 +156,11 @@
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.getAuth , // this.auth est récupéré du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
             },
         };
         // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
-        fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
+        fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
@@ -188,7 +202,7 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({  employeeId : this.getUserId,
+            body: JSON.stringify({  employeeId : this.lsEmpId,
                                     message : postContent}) // Remplissage du body de la requête avec les informations nécessaires
         };
         // Envoi de la requête via fetch pour s'enregistrer
@@ -231,7 +245,7 @@
             method: 'delete',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
             }
         };
         // Envoi de la requête via fetch pour s'enregistrer

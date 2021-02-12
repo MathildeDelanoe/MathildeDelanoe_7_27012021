@@ -81,7 +81,6 @@
 <script>
   import Nav from '../components/Nav.vue'
   import Avatar  from 'vue-avatar-component'
-  import { mapGetters } from 'vuex'
   import {CommonFunctions} from '../assets/CommonFunctions.js'
 
   export default {
@@ -100,20 +99,37 @@
         avatar: '',
         isProfileUpdateNeeded: false,
         isDeletedAccount: false,
-        isUpdatePassword: false
+        isUpdatePassword: false,
+        lsAuth: '',
+        lsEmpId: ''
       };
     },
     mounted(){
+      this.lsAuth = localStorage.getItem('auth');
+      this.lsEmpId = localStorage.getItem('employeeId');
+      if (this.lsAuth === null || this.lsEmpId === null)
+      {
+        console.log('utilisateur non reconnu -> Retour au login')
+        this.$router.push({ name: 'Login' });
+        return;
+      }
+      if (this.lsAuth.length === 0 || this.lsEmpId.length === 0)
+      {
+        console.log('utilisateur non reconnu -> Retour au login')
+        this.$router.push({ name: 'Login' });
+        return;
+      }
+      console.log("L'employé " + this.lsEmpId + ' est connecté')
       // Initialisation des options de la méthode fetch
       let options = 
       {
           method: 'get',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+            'Authorization': 'Bearer ' + this.lsAuth , // this.auth est recupere du composant signup/login
           },
       };
-      fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
+      fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
       .then(response =>
       {
         if (response.ok && (response.status >= 200 && response.status <= 299))
@@ -133,9 +149,6 @@
       })
       .catch(error => alert(error));
     },
-    computed: {
-      ...mapGetters(["getAuth", "getUserId"])
-    },
     methods: 
     {
       formatEmployee(employeeRaw)
@@ -147,7 +160,6 @@
           formattedEmployee.job = "Non renseigné";
         if (formattedEmployee.team === null || formattedEmployee.job.length===0)
           formattedEmployee.team = "Non renseigné";
-        // console.log(formattedEmployee)
         return formattedEmployee;
       },
       updatePassword()
@@ -182,11 +194,11 @@
           method: 'put',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth , // this.auth est recupere du composant signup/login
             },
             body: JSON.stringify({password : passwords}) // Remplissage du body de la requête avec les informations nécessaires
         };
-        fetch('http://localhost:3000/api/employee/password/' + this.getUserId, options)
+        fetch('http://localhost:3000/api/employee/password/' + this.lsEmpId, options)
         .then(response =>
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
@@ -224,10 +236,10 @@
             method: 'delete',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
             },
         };
-        fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
+        fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
@@ -280,7 +292,7 @@
               method: 'put',
               headers: {
                 // 'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+                'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
               },
               body: formData // Remplissage du body de la requête avec les informations nécessaires
           };
@@ -292,12 +304,12 @@
               method: 'put',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.getAuth , // this.auth est recupere du composant signup/login
+                'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
               },
               body: JSON.stringify({employee : updatedProfile}) // Remplissage du body de la requête avec les informations nécessaires
           };
         }
-        fetch('http://localhost:3000/api/employee/' + this.getUserId, options)
+        fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))

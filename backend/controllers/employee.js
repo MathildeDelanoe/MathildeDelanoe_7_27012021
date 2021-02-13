@@ -245,7 +245,7 @@ exports.deleteEmployee = (req, res, next) => {
             if (result[0].avatar)
             {
                 const filename = result[0].avatar.split('/images/')[1];
-                fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
+                fs.unlink('images/' + filename, (err) => { // Suppression de la précédente photo de profil de l'employé
                     if (err) throw err;
                 });
             }

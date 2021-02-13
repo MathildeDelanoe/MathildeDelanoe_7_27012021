@@ -6,9 +6,9 @@ const auth = require('../middleware/auth');
 const postCtrl = require('../controllers/post');
 
 // Création des routes
-router.post('/save', postCtrl.savePost);
-router.get('/', postCtrl.getAllPost);
-router.delete('/:id', postCtrl.delete);
+router.post('/save', auth, multer, postCtrl.savePost);
+router.get('/', auth, postCtrl.getAllPost);
+router.delete('/:id', auth, postCtrl.delete);
 
 // Exportation du router et de ses différentes routes
 module.exports = router;

@@ -278,8 +278,8 @@
         }
 
         // Initialisation des options de la méthode fetch
-        let options ={};
-        if(formInputs[2].files.length !== 0)
+        let options = {};
+        if (formInputs[2].files.length !== 0)
         {
           const formData = new FormData();
           formData.append('job', updatedProfile.job);
@@ -290,7 +290,7 @@
               method: 'put',
               headers: {
                 // 'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
+                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
               },
               body: formData // Remplissage du body de la requête avec les informations nécessaires
           };
@@ -302,7 +302,7 @@
               method: 'put',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
+                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
               },
               body: JSON.stringify({employee : updatedProfile}) // Remplissage du body de la requête avec les informations nécessaires
           };

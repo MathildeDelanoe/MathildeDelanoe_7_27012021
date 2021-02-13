@@ -11,7 +11,7 @@
       <div id="button">
         <button @click="publishPost">Publier</button>
         <label for="file" class="label-file">Télécharger</label>
-        <input type="file" id="file" class="input-file">
+        <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png">
       </div>
     </div>
     <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">
@@ -22,6 +22,7 @@
         <p> {{ singlePost.formatedDate }} </p>
       </div>
       <div id="postContent">
+        <img :src="singlePost.picture" alt="picture of a post" v-if="singlePost.picture !== null"/>
         <p>{{ singlePost.text }}</p>
       </div>
       <div id="icons">
@@ -191,16 +192,38 @@
       publishPost()
       {
         let postContent = document.getElementById("newPost").value;
+        let formInputs = document.querySelectorAll("#post input");
         // Initialisation des options de la méthode fetch
-        let options = 
+        let options = {};
+        if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
         {
-            method: 'post',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({  employeeId : this.lsEmpId,
-                                    message : postContent}) // Remplissage du body de la requête avec les informations nécessaires
-        };
+          const formData = new FormData();
+          formData.append('employeeId', this.lsEmpId);
+          formData.append('message', postContent);
+          formData.append('avatar', formInputs[0].files[0]);
+          options = 
+          {
+              method: 'post',
+              headers: {
+                // 'Content-Type': 'multipart/form-data',
+                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+              },
+              body: formData // Remplissage du body de la requête avec les informations nécessaires
+          };
+        }
+        else
+        {
+          options = 
+          {
+              method: 'post',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+              },
+              body: JSON.stringify({  employeeId : this.lsEmpId,
+                                      message : postContent}) // Remplissage du body de la requête avec les informations nécessaires
+          };
+        }
         // Envoi de la requête via fetch pour s'enregistrer
         fetch('http://localhost:3000/api/post/save', options)
         .then(response =>
@@ -347,6 +370,9 @@ h1 {
 }
 #postContent {
   padding-left:10px;
+  p {
+    white-space: pre-wrap;
+  }
 }
 
 #icons {

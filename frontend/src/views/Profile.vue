@@ -28,15 +28,15 @@
           <p>Modification du mot de passe </p>
           <div>
             <label for="oldPassword">Ancien mot de passe : </label>
-            <input type="passsword" id="oldPassword">
+            <input type="password" id="oldPassword">
           </div>
           <div>
             <label for="newPassword">Nouveau mot de passe : </label>
-            <input type="passsword" id="newPassword" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}">
+            <input type="password" id="newPassword" pattern="(?=\S*[A-Z])(?=\S*[!@#$&*])(?=\S*[0-9])(?=\S*[a-z])\S{8,30}">
           </div>
           <div>
             <label for="confirmNewPassword">Confirmation du nouveau mot de passe : </label>
-            <input type="passsword" id="confirmNewPassword">
+            <input type="password" id="confirmNewPassword">
           </div>
           <div>
             <button @click="sendPasswordUpdate()">Modifier</button>

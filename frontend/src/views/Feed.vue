@@ -11,7 +11,7 @@
       <div id="button">
         <button @click="publishPost">Publier</button>
         <label for="file" class="label-file">Télécharger</label>
-        <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png">
+        <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif">
       </div>
     </div>
     <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">

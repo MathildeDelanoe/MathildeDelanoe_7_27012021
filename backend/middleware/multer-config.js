@@ -6,6 +6,7 @@ const MIME_TYPES = {
     'image/jpg': 'jpg',
     'image/jpeg': 'jpeg',
     'image/png': 'png',
+    'image/gif': 'gif',
 };
 
 // Cette constante indique où enregistrer l'image ainsi que la création du nom de fichier unique

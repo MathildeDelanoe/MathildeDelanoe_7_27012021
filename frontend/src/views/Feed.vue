@@ -375,6 +375,7 @@ h1 {
     white-space: pre-wrap;
   }
   img {
+    margin-top:10px;
     max-width:40%;
   }
 }

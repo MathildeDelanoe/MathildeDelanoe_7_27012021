@@ -374,6 +374,9 @@ h1 {
   p {
     white-space: pre-wrap;
   }
+  img {
+    max-width:40%;
+  }
 }
 
 #icons {

@@ -28,7 +28,8 @@
       <div id="icons">
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <p v-if="singlePost.user_id==this.lsEmpId || this.isAdmin.data[0]==true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
+        <p v-if="singlePost.user_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
+        <!-- <p v-if="singlePost.user_id==this.lsEmpId"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p> -->
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -174,7 +175,7 @@
           let employee = this.formatEmployee(response.employee);
           this.userName = employee.first_name + " " + employee.last_name;
           this.avatar = employee.avatar;
-          this.isAdmin = employee.is_admin;
+          this.isAdmin = (employee.is_admin.data[0])?true:false;
         })
         .catch(error => alert(error));
       },

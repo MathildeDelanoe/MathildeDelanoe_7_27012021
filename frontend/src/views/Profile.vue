@@ -234,7 +234,7 @@
             method: 'delete',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
             },
         };
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
@@ -252,8 +252,7 @@
         .then(response => 
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un employé a été supprimé!");
-          this.$store.commit('SET_AUTHENTICATION', '');
-          this.$store.commit('SET_USERID', '');
+          localStorage.clear(); // Suppression des identifiants de l'employé
           this.$router.push({ name: 'Signup' });
         })
         .catch(error => alert(error));

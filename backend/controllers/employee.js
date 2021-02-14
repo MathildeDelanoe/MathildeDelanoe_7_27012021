@@ -240,6 +240,7 @@ exports.deleteEmployee = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
+        // Suppression de la photo de profil de l'employé si elle existe
         connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
             if (error) throw error;
             if (result[0].avatar)
@@ -250,6 +251,23 @@ exports.deleteEmployee = (req, res, next) => {
                 });
             }
         });
+
+        // Suppression de toutes les photos des posts de l'employé s'il y en a
+        connection.query("SELECT picture FROM posts WHERE user_id=? AND picture IS NOT NULL;", req.params.id, (error, result) => {
+            if (error) throw error;
+            for (let line of result)
+            {
+                if (line.picture)
+                {
+                    const filename = line.picture.split('/images/')[1];
+                    fs.unlink('images/' + filename, (err) => { // Suppression des images postées par l'utilisateur
+                        if (err) throw err;
+                    });
+                }
+            }
+        });
+
+        // Suppression du compte de l'employé
         connection.query("DELETE FROM employees WHERE id=?", req.params.id, (error, result) => {
             //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);

@@ -15,7 +15,18 @@ exports.savePost = (req, res, next) => {
     // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
-        let message = req.body.message;
+        // Si le texte du message présente des apostrophes, on double les apostrophes pour éviter les erreurs sql
+        let messageSplit = req.body.message.split("'");
+        let message = messageSplit[0];
+        for (let index = 1; index < messageSplit.length; ++index)
+        {
+            message += "''";
+            message += messageSplit[index];
+        }
+        if (message.length === 0)
+        {
+            return res.status(403).json({ errorMessage: 'Message vide !'});
+        }
         if (req.file)
         {
             // Construction de la requête SQL

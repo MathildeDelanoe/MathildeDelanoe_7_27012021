@@ -20,9 +20,9 @@ const storage = multer.diskStorage(
     {
         const extension = MIME_TYPES[file.mimetype];
         // Timestamp pour rendre l'image unique
-        callback(null, 'avatar_' + Date.now() + '.' + extension);
+        callback(null, 'picture_' + Date.now() + '.' + extension);
     }
 });
 
 // Exportation de l'élément multer
-module.exports = multer({ storage }).single('avatar'); // Seulement téléchargement de fichiers image
+module.exports = multer({ storage }).single('picture'); // Seulement téléchargement de fichiers image

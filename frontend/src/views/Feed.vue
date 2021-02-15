@@ -16,37 +16,55 @@
       </div>
     </div>
     <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">
-      <div id="person_comments">
-        <div>
-          <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30" id="avatar"></avatar> <p> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
+      <div>
+        <div id="person_comments">
+          <div>
+            <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30" id="avatar"></avatar> <p> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
+          </div>
+          <p> {{ singlePost.formatedDate }} </p>
         </div>
-        <p> {{ singlePost.formatedDate }} </p>
+        <div id="postContent">
+          <img :src="singlePost.picture" alt="picture of a post" v-if="singlePost.picture !== null"/>
+          <p>{{ singlePost.text }}</p>
+        </div>
+        <div id="icons">
+          <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
+          <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
+          <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeleteMessageNeeded(singlePost.id, true)"/></p>
+        </div>
+        <div id="deletePostBox" v-if="mapDeletedMessage.has(singlePost.id) && mapDeletedMessage.get(singlePost.id)==true">
+          <p>Voulez-vous vraiment supprimer votre post?</p>
+          <div>
+            <button @click="deleteMessage(singlePost.id)">Oui</button>
+            <button @click="setIsDeleteMessageNeeded(singlePost.id, false)">Non</button>
+          </div>
+        </div>
       </div>
-      <div id="postContent">
-        <img :src="singlePost.picture" alt="picture of a post" v-if="singlePost.picture !== null"/>
-        <p>{{ singlePost.text }}</p>
-      </div>
-      <div id="icons">
-        <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
-        <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
-        <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
-      </div>  
       <div id="comments">
-        <div v-for="singleComment in singlePost.comments" :key="singleComment">
-          <p>{{ singleComment.text }}</p>
+        <div id ="fullComment" v-for="singleComment in singlePost.comments" :key="singleComment">
+          <div>
+            <avatar :fullname="singleComment.first_name + ' ' + singleComment.last_name" :image="singleComment.avatar" :size="30" id="avatar"></avatar>
+            <div id="commentsText">
+              <div id="commentsHead">
+                <p>{{ singleComment.first_name + ' ' + singleComment.last_name }} {{ singleComment.formatedDate.toLowerCase() }}</p>
+              </div>
+              <p>{{ singleComment.text }}</p>
+            </div>
+            <p v-if="singleComment.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeleteMessageNeeded(singleComment.id, true)"/></p>
+          </div>
+          <div id="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
+            <p>Voulez-vous vraiment supprimer votre commentaire?</p>
+            <div>
+              <button @click="deleteMessage(singleComment.id)">Oui</button>
+              <button @click="setIsDeleteMessageNeeded(singleComment.id, false)">Non</button>
+            </div>
+          </div>
         </div>
         <div>
           <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
             <input class="input" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id)">Envoyer</button>
           </form>
-        </div>
-      </div>
-      <div id="deletePostBox" v-if="mapDeletedPost.has(singlePost.id) && mapDeletedPost.get(singlePost.id)==true">
-        <p>Voulez-vous vraiment supprimer votre post?</p>
-        <div>
-          <button @click="deletePost(singlePost.id)">Oui</button>
-          <button @click="setIsDeletePostNeeded(singlePost.id, false)">Non</button>
         </div>
       </div>
     </div>
@@ -83,7 +101,7 @@
         feedPosts: [],
         avatarPosted: '',
         datePosted: '',
-        mapDeletedPost : new Map(),
+        mapDeletedMessage : new Map(),
         lsAuth: '',
         lsEmpId: ''
       };
@@ -173,7 +191,11 @@
             .then(response => 
             {
               post = {...post, comments: response.comments};
-              post.avatar = (post.avatar === null)?"": post.avatar;             
+              post.avatar = (post.avatar === null)?"": post.avatar;
+              for (let comment of post.comments)
+              {
+                comment.avatar = (comment.avatar === null)?"": comment.avatar;
+              }
               this.feedPosts.push(post);
             })
             .catch(error => alert(error));
@@ -226,6 +248,8 @@
       },
       publishPost()
       {
+        let responseStatus;
+        let responseOk;
         let postContent = document.getElementById("newPost").value;
         let formInputs = document.querySelectorAll("#post input");
         // Initialisation des options de la méthode fetch
@@ -235,7 +259,7 @@
           const formData = new FormData();
           formData.append('employeeId', this.lsEmpId);
           formData.append('message', postContent);
-          formData.append('avatar', formInputs[0].files[0]);
+          formData.append('picture', formInputs[0].files[0]);
           options = 
           {
               method: 'post',
@@ -263,17 +287,16 @@
         fetch('http://localhost:3000/api/post/save', options)
         .then(response =>
         {
-          if (response.ok && (response.status >= 200 && response.status <= 299))
-          {
-            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-          }
-          else
-          {
-            throw new Error((CommonFunctions.errorManagement(response.status)));
-          }
+          responseStatus = response.status;
+          responseOk = response.ok;
+          return response.json();
         })
-        .then(() =>
+        .then(response =>
         {
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
           document.getElementById("newPost").value = '';
           if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
           {
@@ -289,15 +312,16 @@
         })
         .catch(error => alert(error))
       },
-      setIsDeletePostNeeded(postId, value)
+      setIsDeleteMessageNeeded(postId, value)
       {
-        this.mapDeletedPost.set(postId, value);
         if (value === false)
         {
-          this.mapDeletedPost.delete(postId);
+          this.mapDeletedMessage.delete(postId);
+          return;
         }
+        this.mapDeletedMessage.set(postId, value);
       },
-      deletePost(postId)
+      deleteMessage(messageId)
       {
         // Initialisation des options de la méthode fetch
         let options = 
@@ -309,7 +333,7 @@
             }
         };
         // Envoi de la requête via fetch pour s'enregistrer
-        fetch('http://localhost:3000/api/post/' + postId, options)
+        fetch('http://localhost:3000/api/post/' + messageId, options)
         .then(response =>
         {
           if (response.ok && (response.status >= 200 && response.status <= 299))
@@ -323,13 +347,16 @@
         })
         .then(response =>
         {
-          if (response.deletionNumber != 1) throw new Error("plus d'un post a été supprimé!");
-          this.mapDeletedPost.delete(postId);
+          if (response.deletionNumber != 1) throw new Error("plus d'un message a été supprimé!");
+          this.setIsDeleteMessageNeeded(messageId, false);
           this.getPosts();
         })
         .catch(error => alert(error))
       },
-      publishComment(post_id) {
+      publishComment(post_id)
+      {
+        let responseStatus;
+        let responseOk;
         let commentContent = document.querySelectorAll("form input")[0].value;
         let options = 
         {
@@ -346,17 +373,16 @@
         fetch('http://localhost:3000/api/post/save', options)
         .then(response =>
         {
-          if (response.ok && (response.status >= 200 && response.status <= 299))
-          {
-            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-          }
-          else
-          {
-            throw new Error((CommonFunctions.errorManagement(response.status)));
-          }
+          responseStatus = response.status;
+          responseOk = response.ok;
+          return response.json();
         })
-        .then(() =>
+        .then(response =>
         {
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
           document.querySelectorAll("form input")[0].value = '';
           this.getPosts();
         })
@@ -431,6 +457,8 @@ h1 {
   border-radius:10px;
   margin:auto;
   margin-bottom:50px;
+}
+#posted > div:first-child {
   position:relative;
 }
 #person_comments {
@@ -482,15 +510,41 @@ h1 {
 }
 #comments {
   width:90%;
-  text-align:center;
+  padding-top:10px;
   margin:auto;
+  font-size:0.8em;
+  // border:1px solid cyan;
 }
+#commentsHead {
+  // border:1px solid green;
+  font-style:italic;
+  color:rgb(48,66,96);
+}
+
+#fullComment {
+  position: relative;
+}
+
+#fullComment > div:first-child{
+  display:flex;
+  p {
+    // border:1px solid blue;
+    margin:0;
+  }
+  .fa-trash {
+    margin-top:100%;
+    cursor:pointer;
+    color:rgb(48,66,96);
+    // border:1px solid orange;
+  }
+}
+
 #commentsText {
-  width:90%;
-  height:100px;
-  border-radius:10px;
-  box-shadow:2px 2px 2px grey;
+  // border:1px solid purple;
+  width:100%;
+  margin:0px 0px 15px 10px;
 }
+
 #responseText {
   width:90%;
   font-size:0.7em;
@@ -525,7 +579,7 @@ button {
   outline:none;
 }
 
-#deletePostBox {
+#deletePostBox, #deleteCommentBox {
   background-color:rgb(217,217,217);
   position:absolute;
   width:200px;

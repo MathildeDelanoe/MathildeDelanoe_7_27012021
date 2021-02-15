@@ -283,7 +283,7 @@
           const formData = new FormData();
           formData.append('job', updatedProfile.job);
           formData.append('team', updatedProfile.team);
-          formData.append('avatar', formInputs[2].files[0]);
+          formData.append('picture', formInputs[2].files[0]);
           options = 
           {
               method: 'put',

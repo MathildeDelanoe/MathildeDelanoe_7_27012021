@@ -7,7 +7,6 @@
       <div id="imagePreview">
       </div>
       <div>
-        <!-- <textarea id="newPost" name="newPost" rows="15" cols="70" placeholder="Exprimez-vous ... "> -->
         <textarea id="newPost" name="newPost" placeholder="Exprimez-vous ... "></textarea>
       </div>
       <div id="button">
@@ -28,9 +27,9 @@
         <p>{{ singlePost.text }}</p>
       </div>
       <div id="icons">
-        <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
+        <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
-        <p v-if="singlePost.user_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
+        <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -259,6 +258,12 @@
           if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
           {
             formInputs[0].value = null;
+          }
+          // Récupération de la div html contenant la prévisualisation
+          let picturePreview = document.getElementById("imagePreview");
+          // Boucle de suppression des images déjà présentes dans le post
+          while(picturePreview.firstChild) {
+            picturePreview.removeChild(picturePreview.firstChild);
           }
           this.getPosts();
         })

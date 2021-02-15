@@ -19,13 +19,13 @@ exports.savePost = (req, res, next) => {
         if (req.file)
         {
             // Construction de la requête SQL
-            let sqlQuery = "INSERT INTO posts (user_id, date, text, picture, nb_like) VALUES ('";
+            let sqlQuery = "INSERT INTO posts (employee_id, date, text, picture) VALUES ('";
             sqlQuery += req.body.employeeId;
             sqlQuery += "', NOW(), '";
             sqlQuery += message;
             sqlQuery += "', '";
             sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
-            sqlQuery += "', 0);";
+            sqlQuery += "');";
             // Traitement de la requête SQL
             connection.query(sqlQuery, (error) => {
                 if (error) throw new Error(error);
@@ -35,11 +35,11 @@ exports.savePost = (req, res, next) => {
         else
         {
             // Construction de la requête SQL
-            let sqlQuery = "INSERT INTO posts (user_id, date, text, nb_like) VALUES ('";
+            let sqlQuery = "INSERT INTO posts (employee_id, date, text) VALUES ('";
             sqlQuery += req.body.employeeId;
             sqlQuery += "', NOW(), '";
             sqlQuery += message;
-            sqlQuery += "', 0);";
+            sqlQuery += "');";
             // Traitement de la requête SQL
             connection.query(sqlQuery, (error) => {
                 if (error) throw new Error(error);
@@ -60,7 +60,7 @@ exports.getAllPost = (req, res, next) => {
     connection.connect(error => {
         if (error) throw error;
         // Traitement de la requête SQL
-        connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON user_id=employees.id ORDER BY date DESC", (error, result) => {
+        connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id IS NULL ORDER BY date DESC", (error, result) => {
             if (error) throw new Error(error);
             res.status(201).json({ posts: result});
         });

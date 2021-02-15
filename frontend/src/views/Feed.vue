@@ -4,6 +4,8 @@
     <h1> Bienvenue {{ userName }} !</h1>
     <div id="post">
       <label for="newPost">Publication : </label>
+      <div id="imagePreview">
+      </div>
       <div>
         <!-- <textarea id="newPost" name="newPost" rows="15" cols="70" placeholder="Exprimez-vous ... "> -->
         <textarea id="newPost" name="newPost" placeholder="Exprimez-vous ... "></textarea>
@@ -11,7 +13,7 @@
       <div id="button">
         <button @click="publishPost">Publier</button>
         <label for="file" class="label-file">Télécharger</label>
-        <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif">
+        <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif" @change="this.showPreview()">
       </div>
     </div>
     <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">
@@ -29,7 +31,6 @@
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nb_like }}</p>
         <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
         <p v-if="singlePost.user_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
-        <!-- <p v-if="singlePost.user_id==this.lsEmpId"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p> -->
       </div>  
       <div id="comments">
         <!-- <label for="commentsText"></label>
@@ -113,6 +114,20 @@
     },
     methods:
     {
+      showPreview()
+      {
+        // Récupération de la div html contenant la prévisualisation
+        let picturePreview = document.getElementById("imagePreview");
+        // Boucle de suppression des images déjà présentes dans le post
+        while(picturePreview.firstChild) {
+          picturePreview.removeChild(picturePreview.firstChild);
+        }
+
+        let postPicture = document.getElementById("file"); // Récupération de l'input de type file
+        let image = document.createElement('img'); // Création d'une image
+        image.src = window.URL.createObjectURL(postPicture.files[0]);
+        picturePreview.appendChild(image);
+      },
       getPosts(){
         this.feedPosts.length = 0; // Nécessité de vider le tableau de posts
         // Initialisation des options de la méthode fetch
@@ -240,7 +255,11 @@
         })
         .then(() =>
         {
-          document.getElementById("newPost").value = ''; 
+          document.getElementById("newPost").value = '';
+          if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
+          {
+            formInputs[0].value = null;
+          }
           this.getPosts();
         })
         .catch(error => alert(error))
@@ -326,19 +345,27 @@ h1 {
       background-color:rgb(48,66,96);
       color: white;
       border:none;
+      cursor:pointer;
   }
 
-  .label-file{
-    cursor:pointer;
+  .label-file {
     font-weight: normal;
     font-size:0.8em;
   }
 
-  .input-file{
-    display:none;
+  .input-file {
+    position: fixed;
+    right: 100%;
+    bottom: 100%;
+    opacity: 0;
   }
-
+  #imagePreview {
+    img {
+      width:30%;
+    }
+  }
 }
+
 
 #posted {
   width:90%;

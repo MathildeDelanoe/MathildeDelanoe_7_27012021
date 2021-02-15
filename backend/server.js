@@ -58,5 +58,20 @@ server.on('listening', () => {
   console.log('Listening on ' + bind);
 });
 
+// Mise en place de socket.io
+const io = require('socket.io')(server, {
+  cors: {
+    origin: 'http://localhost:8080',
+    methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+  }
+});
+// console.log(io)
+io.sockets.on('connection', (socket) => {
+  console.log('someone connected with sockedId = ' + socket.id)
+  socket.on('publishPost', function() {
+    socket.broadcast.emit('UPDATEPOST'); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
+  });
+});
+
 // Le serveur écoute le port défini plus haut
 server.listen(port);

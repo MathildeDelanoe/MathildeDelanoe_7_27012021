@@ -3,7 +3,6 @@ const mysql = require('mysql');
 const fs = require('fs');
 require('dotenv').config();
 
-
 // Création du middleware de sauvegarde d'un post
 exports.savePost = (req, res, next) => {
     let connection = mysql.createConnection({

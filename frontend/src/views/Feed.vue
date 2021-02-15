@@ -109,6 +109,7 @@
   </body>
 </template>
 
+
 <script>
   import Nav from '../components/Nav.vue'
   import { library } from '@fortawesome/fontawesome-svg-core'
@@ -116,6 +117,7 @@
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import Avatar  from 'vue-avatar-component'
   import {CommonFunctions} from '../assets/CommonFunctions.js'
+  import io from 'socket.io-client'
   library.add(faTrash)
   library.add(faThumbsUp)
   library.add(faComment)
@@ -145,7 +147,8 @@
         mapDeletedMessage : new Map(),
         lsAuth: '',
         lsEmpId: '',
-        likedPost: []
+        likedPost: [],
+        socket: null
       };
     },
     mounted(){
@@ -164,6 +167,15 @@
       }
       this.getPosts();
       this.getEmployeeInfo();
+      
+      this.socket.on('UPDATEPOST', () =>{
+        console.log('try to call the socket');
+        this.getPosts();
+      });
+    },
+    created()
+    {
+      this.socket = io('localhost:3000');
     },
     methods:
     {
@@ -428,6 +440,9 @@
             // Mise à jour du nombre de likes du post courant
             this.feedPosts[indexPost].nbLikes--;
           }
+          document.getElementById("newPost").value = '';
+          this.socket.emit('publishPost');
+          this.getPosts();
         })
         .catch(error => alert(error))
       },

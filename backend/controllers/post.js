@@ -34,17 +34,36 @@ exports.savePost = (req, res, next) => {
         }
         else
         {
-            // Construction de la requête SQL
-            let sqlQuery = "INSERT INTO posts (employee_id, date, text) VALUES ('";
-            sqlQuery += req.body.employeeId;
-            sqlQuery += "', NOW(), '";
-            sqlQuery += message;
-            sqlQuery += "');";
-            // Traitement de la requête SQL
-            connection.query(sqlQuery, (error) => {
-                if (error) throw new Error(error);
-                res.status(201).json({ message: 'Post créé !'});
-            });
+            // Réception d'un post ou d'un commentaire
+            if (req.body.postId)
+            {
+                let sqlQuery = "INSERT INTO posts (employee_id, date, text, post_id) VALUES ('";
+                sqlQuery += req.body.employeeId;
+                sqlQuery += "', NOW(), '";
+                sqlQuery += message;
+                sqlQuery += "', '";
+                sqlQuery += req.body.postId;
+                sqlQuery += "');";
+                // Traitement de la requête SQL
+                connection.query(sqlQuery, (error) => {
+                    if (error) throw new Error(error);
+                    res.status(201).json({ message: 'Commentaire créé !'});
+                });
+            }
+            else
+            {
+                // Construction de la requête SQL
+                let sqlQuery = "INSERT INTO posts (employee_id, date, text) VALUES ('";
+                sqlQuery += req.body.employeeId;
+                sqlQuery += "', NOW(), '";
+                sqlQuery += message;
+                sqlQuery += "');";
+                // Traitement de la requête SQL
+                connection.query(sqlQuery, (error) => {
+                    if (error) throw new Error(error);
+                    res.status(201).json({ message: 'Post créé !'});
+                });
+            }
         }
     })
 };
@@ -63,6 +82,24 @@ exports.getAllPost = (req, res, next) => {
         connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id IS NULL ORDER BY date DESC", (error, result) => {
             if (error) throw new Error(error);
             res.status(201).json({ posts: result});
+        });
+    })
+};
+
+exports.getAllCommentsFromPost= (req, res, next) => {
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    // Connection à la base de données
+    connection.connect(error => {
+        if (error) throw error;
+        // Traitement de la requête SQL
+        connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id = ? ORDER BY date", req.params.id, (error, result) => {
+            if (error) throw new Error(error);
+            res.status(201).json({ comments: result});
         });
     })
 };

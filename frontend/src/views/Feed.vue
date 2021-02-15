@@ -28,23 +28,17 @@
       </div>
       <div id="icons">
         <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
-        <p><font-awesome-icon :icon="['fas', 'comment']"/> 0 commentaires</p>
+        <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
         <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeletePostNeeded(singlePost.id, true)"/></p>
       </div>  
       <div id="comments">
-        <!-- <label for="commentsText"></label>
-        <textarea id="commentsText" name="commentsText" placeholder="Commentaires ...">
-        </textarea>
-        <div id="responseText">
-          <font-awesome-icon :icon="['fas', 'thumbs-up']"/>
-          <p>J'aime</p>
-          <p>Supprimer</p>
-        </div> -->
+        <div v-for="singleComment in singlePost.comments" :key="singleComment">
+          <p>{{ singleComment.text }}</p>
+        </div>
         <div>
-          <!-- <ul id="messages"></ul> -->
           <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
-            <input class="input" placeholder="Votre commentaire" /><button>Envoyer</button>
+            <input class="input" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id)">Envoyer</button>
           </form>
         </div>
       </div>
@@ -155,8 +149,34 @@
         {
           for (let post of response.posts)
           {
-            post.avatar = (post.avatar === null)?"": post.avatar;
-            this.feedPosts.push(post);
+            let options = 
+            {
+                method: 'get',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+                },
+            };
+            // Envoi de la requête via fetch pour récupérer tous les posts
+            fetch('http://localhost:3000/api/post/comments/' + post.id, options)
+            .then(response =>
+            {
+              if (response.ok && (response.status >= 200 && response.status <= 299))
+              {
+                  return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+              }
+              else
+              {
+                  throw new Error(CommonFunctions.errorManagement(response.status));
+              }
+            })
+            .then(response => 
+            {
+              post = {...post, comments: response.comments};
+              post.avatar = (post.avatar === null)?"": post.avatar;             
+              this.feedPosts.push(post);
+            })
+            .catch(error => alert(error));
           }
         })
         .catch(error => alert(error));
@@ -305,6 +325,39 @@
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un post a été supprimé!");
           this.mapDeletedPost.delete(postId);
+          this.getPosts();
+        })
+        .catch(error => alert(error))
+      },
+      publishComment(post_id) {
+        let commentContent = document.querySelectorAll("form input")[0].value;
+        let options = 
+        {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+            },
+            body: JSON.stringify({  employeeId : this.lsEmpId,
+                                    message : commentContent,
+                                    postId : post_id}) // Remplissage du body de la requête avec les informations nécessaires
+        };
+        // Envoi de la requête via fetch pour s'enregistrer
+        fetch('http://localhost:3000/api/post/save', options)
+        .then(response =>
+        {
+          if (response.ok && (response.status >= 200 && response.status <= 299))
+          {
+            return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
+          }
+          else
+          {
+            throw new Error((CommonFunctions.errorManagement(response.status)));
+          }
+        })
+        .then(() =>
+        {
+          document.querySelectorAll("form input")[0].value = '';
           this.getPosts();
         })
         .catch(error => alert(error))

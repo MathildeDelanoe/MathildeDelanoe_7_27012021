@@ -8,6 +8,7 @@ const postCtrl = require('../controllers/post');
 // Création des routes
 router.post('/save', auth, multer, postCtrl.savePost);
 router.get('/', auth, postCtrl.getAllPost);
+router.get('/comments/:id', auth, postCtrl.getAllCommentsFromPost);
 router.delete('/:id', auth, postCtrl.delete);
 
 // Exportation du router et de ses différentes routes

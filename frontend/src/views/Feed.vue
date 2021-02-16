@@ -139,6 +139,29 @@
         image.src = window.URL.createObjectURL(postPicture.files[0]);
         picturePreview.appendChild(image);
       },
+      async fetchComments(post)
+      {
+        console.log("fetchComments of post " + post.id)
+        let options = 
+        {
+            method: 'get',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+            },
+        };
+        // Envoi de la requête via fetch pour récupérer tous les posts
+        let jsonResponse = await fetch('http://localhost:3000/api/post/comments/' + post.id, options);
+        let commentsTable = await jsonResponse.json();
+        post = {...post, comments: commentsTable.comments};
+        post.avatar = (post.avatar === null)?"": post.avatar;
+        for (let comment of post.comments)
+        {
+          comment.avatar = (comment.avatar === null)?"": comment.avatar;
+        }
+        console.log("output of fecthComments of post " + post.id)
+        return post;
+      },
       getPosts(){
         this.feedPosts.length = 0; // Nécessité de vider le tableau de posts
         // Initialisation des options de la méthode fetch
@@ -163,42 +186,20 @@
               throw new Error(CommonFunctions.errorManagement(response.status));
           }
         })
-        .then(response => 
+        .then(async response => 
         {
+          console.log("out of fetchPost")
+          console.log(response.posts)
           for (let post of response.posts)
           {
-            let options = 
-            {
-                method: 'get',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
-                },
-            };
-            // Envoi de la requête via fetch pour récupérer tous les posts
-            fetch('http://localhost:3000/api/post/comments/' + post.id, options)
-            .then(response =>
-            {
-              if (response.ok && (response.status >= 200 && response.status <= 299))
-              {
-                  return response.json(); // Gestion des bons cas seulement si le code est entre 200 et 299
-              }
-              else
-              {
-                  throw new Error(CommonFunctions.errorManagement(response.status));
-              }
-            })
-            .then(response => 
-            {
-              post = {...post, comments: response.comments};
-              post.avatar = (post.avatar === null)?"": post.avatar;
-              for (let comment of post.comments)
-              {
-                comment.avatar = (comment.avatar === null)?"": comment.avatar;
-              }
+            console.log("entry of for loop");
+            console.log(post)
+            await this.fetchComments(post)
+            .then(post => {
+              console.log("Just before filling the feedPosts")
+              console.log(post)
               this.feedPosts.push(post);
-            })
-            .catch(error => alert(error));
+            });
           }
         })
         .catch(error => alert(error));

@@ -15,7 +15,7 @@
         <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif" @change="this.showPreview()">
       </div>
     </div>
-    <div id="posted" v-for="singlePost in feedPosts" :key="singlePost">
+    <div id="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
       <div>
         <div id="person_comments">
           <div>
@@ -63,7 +63,7 @@
         <div>
           <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
-            <input class="input" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id)">Envoyer</button>
+            <input class="input" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id, indexPost)">Envoyer</button>
           </form>
         </div>
       </div>
@@ -312,14 +312,14 @@
         })
         .catch(error => alert(error))
       },
-      setIsDeleteMessageNeeded(postId, value)
+      setIsDeleteMessageNeeded(messageId, value)
       {
         if (value === false)
         {
-          this.mapDeletedMessage.delete(postId);
+          this.mapDeletedMessage.delete(messageId);
           return;
         }
-        this.mapDeletedMessage.set(postId, value);
+        this.mapDeletedMessage.set(messageId, value);
       },
       deleteMessage(messageId)
       {
@@ -353,11 +353,11 @@
         })
         .catch(error => alert(error))
       },
-      publishComment(post_id)
+      publishComment(post_id, post_index)
       {
         let responseStatus;
         let responseOk;
-        let commentContent = document.querySelectorAll("form input")[0].value;
+        let commentContent = document.querySelectorAll("form input")[post_index].value;
         let options = 
         {
             method: 'post',
@@ -383,7 +383,7 @@
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
-          document.querySelectorAll("form input")[0].value = '';
+          document.querySelectorAll("form input")[post_index].value = '';
           this.getPosts();
         })
         .catch(error => alert(error))
@@ -458,9 +458,11 @@ h1 {
   margin:auto;
   margin-bottom:50px;
 }
+
 #posted > div:first-child {
   position:relative;
 }
+
 #person_comments {
   font-size:0.8em;
   background-color:rgb(48,66,96);
@@ -482,6 +484,7 @@ h1 {
     margin-right:10px;
   }
 }
+
 #postContent {
   padding-left:10px;
   p {
@@ -495,7 +498,6 @@ h1 {
 
 #icons {
   background-color:rgb(48,66,96);
-  // border-radius:0px 0px 10px 10px;
   border:1px solid;
   color:white;
   font-size:0.8em;
@@ -508,41 +510,37 @@ h1 {
     margin:0;
   }
 }
+
 #comments {
   width:90%;
   padding-top:10px;
   margin:auto;
-  font-size:0.8em;
-  // border:1px solid cyan;
-}
-#commentsHead {
-  // border:1px solid green;
-  font-style:italic;
-  color:rgb(48,66,96);
 }
 
-#fullComment {
-  position: relative;
+#commentsHead {
+  font-style:italic;
+  color:rgb(48,66,96);
 }
 
 #fullComment > div:first-child{
   display:flex;
   p {
-    // border:1px solid blue;
+    word-wrap: break-word;
     margin:0;
   }
   .fa-trash {
     margin-top:100%;
+    margin-left:90%;
     cursor:pointer;
     color:rgb(48,66,96);
-    // border:1px solid orange;
+    font-size:0.8em;
   }
 }
 
 #commentsText {
-  // border:1px solid purple;
-  width:100%;
+  width:80%;
   margin:0px 0px 15px 10px;
+  font-size:0.8em;
 }
 
 #responseText {
@@ -558,6 +556,7 @@ h1 {
     padding-left:10px;
   }
 }
+
 .formComments {
   margin:10px 0px ;
   display:flex;
@@ -579,7 +578,7 @@ button {
   outline:none;
 }
 
-#deletePostBox, #deleteCommentBox {
+#deletePostBox {
   background-color:rgb(217,217,217);
   position:absolute;
   width:200px;
@@ -588,7 +587,6 @@ button {
   transform: translate(-50%,-50%);
   border-radius:5px;
   padding:20px;
-
   p {
     text-align:center;
   }
@@ -604,13 +602,35 @@ button {
   }
 }
 
+#deleteCommentBox {
+  color:rgb(224,18,29);
+  border:1px solid black;
+  width:95%;
+  border-radius:5px;
+  padding:5px;
+  margin-bottom:10px;
+
+  p {
+    text-align:center;
+    margin:0px 0px 5px 0px;
+  }
+  div {
+    width:100px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+  }
+  button {
+    cursor:pointer;
+    border-radius:5px;
+  }
+}
 
   @media screen and (min-width:1500px) {
 
     #post, #posted {
       width:40%;
     }
-
   }
 
 

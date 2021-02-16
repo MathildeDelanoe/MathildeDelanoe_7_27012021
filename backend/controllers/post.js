@@ -41,6 +41,7 @@ exports.savePost = (req, res, next) => {
             connection.query(sqlQuery, (error) => {
                 if (error) throw new Error(error);
                 res.status(201).json({ message: 'Post créé !'});
+                connection.end();
             });
         }
         else
@@ -59,6 +60,7 @@ exports.savePost = (req, res, next) => {
                 connection.query(sqlQuery, (error) => {
                     if (error) throw new Error(error);
                     res.status(201).json({ message: 'Commentaire créé !'});
+                    connection.end();
                 });
             }
             else
@@ -73,6 +75,7 @@ exports.savePost = (req, res, next) => {
                 connection.query(sqlQuery, (error) => {
                     if (error) throw new Error(error);
                     res.status(201).json({ message: 'Post créé !'});
+                    connection.end();
                 });
             }
         }
@@ -94,6 +97,7 @@ exports.getAllPost = (req, res, next) => {
             if (error) throw new Error(error);
             res.status(201).json({ posts: result});
         });
+        connection.end();
     })
 };
 
@@ -112,6 +116,7 @@ exports.getAllCommentsFromPost= (req, res, next) => {
             if (error) throw new Error(error);
             res.status(201).json({ comments: result});
         });
+        connection.end();
     })
 };
 
@@ -141,6 +146,7 @@ exports.delete = (req, res, next) => {
             res.status(201).json({ 
                 deletionNumber: result.affectedRows
             });
+            connection.end();
         });
     })
 };

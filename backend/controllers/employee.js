@@ -131,6 +131,7 @@ exports.signup = (req, res, next) => {
                             res.status(201).json({ message: 'Employé créé !'});
                         });
                     });
+                    connection.end();
                 });
             })
         })
@@ -208,6 +209,7 @@ exports.login = (req, res, next) => {
                     res.status(401).json({ errorMessage: "Plusieurs adresses email reconnues!" });
                 }
             });
+            connection.end();
         });
     });
 };
@@ -227,6 +229,7 @@ exports.retrieveEmployeeInfo = (req, res, next) => {
             res.status(200).json({
                 employee: result[0]
             });
+            connection.end();
         });
     });
 };
@@ -253,7 +256,7 @@ exports.deleteEmployee = (req, res, next) => {
         });
 
         // Suppression de toutes les photos des posts de l'employé s'il y en a
-        connection.query("SELECT picture FROM posts WHERE user_id=? AND picture IS NOT NULL;", req.params.id, (error, result) => {
+        connection.query("SELECT picture FROM posts WHERE employee_id=? AND picture IS NOT NULL;", req.params.id, (error, result) => {
             if (error) throw error;
             for (let line of result)
             {
@@ -274,6 +277,7 @@ exports.deleteEmployee = (req, res, next) => {
             res.status(200).json({
                 deletionNumber: result.affectedRows
             });
+            connection.end();
         });
     });
 };
@@ -351,6 +355,7 @@ exports.updateEmployee = (req, res, next) => {
                     filename: null
                 });
             }
+            connection.end();
         });
     });
 };
@@ -394,6 +399,7 @@ exports.updatePassword = (req, res, next) => {
                 })
                 .catch(() => res.status(500).json({ errorMessage: 'hash erreur' }));
             })
+            connection.end();
         })
     });
 };

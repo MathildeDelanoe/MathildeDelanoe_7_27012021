@@ -108,6 +108,7 @@ exports.signup = (req, res, next) => {
                         // Comparaison des emails
                         if (originalEmail === formatDatabaseInput(email))
                         {
+                            connection.end();
                             return res.status(403).json({ errorMessage: 'Email déjà utilisé'});
                         }
                     }
@@ -129,9 +130,9 @@ exports.signup = (req, res, next) => {
                         connection.query(sqlQuery, (error) => {
                             if (error) throw new Error(error);
                             res.status(201).json({ message: 'Employé créé !'});
+                            connection.end();
                         });
                     });
-                    connection.end();
                 });
             })
         })
@@ -184,12 +185,15 @@ exports.login = (req, res, next) => {
                         if (!valid)
                         {
                             // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
+                            connection.end();
                             return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                         }
                         /* Le mot de passe est correct.
                             Envoi d'un objet json qui contient l'identifiant de l'utilisateur et un token d'authentification
                         */
-                        res.status(200).json({
+                       
+                        connection.end();
+                        return res.status(200).json({
                             userId: result[0].id,
                             token: jwt.sign(
                                 { userId: result[0].id},
@@ -202,14 +206,15 @@ exports.login = (req, res, next) => {
                 }
                 else if (result.length == 0)
                 {
-                    res.status(401).json({ errorMessage: "Adresse mail non reconnue!" });
+                    connection.end();
+                    return res.status(401).json({ errorMessage: "Adresse mail non reconnue!" });
                 }
                 else  // (result.length > 1)
                 {
-                    res.status(401).json({ errorMessage: "Plusieurs adresses email reconnues!" });
+                    connection.end();
+                    return res.status(401).json({ errorMessage: "Plusieurs adresses email reconnues!" });
                 }
             });
-            connection.end();
         });
     });
 };
@@ -381,7 +386,9 @@ exports.updatePassword = (req, res, next) => {
                 */
                 if (!valid)
                 {
+                    // connection.end();
                     // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
+                    connection.end();
                     return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                 }
                 // Le mot de passe est correct, on peut changer par le nouveau
@@ -394,12 +401,12 @@ exports.updatePassword = (req, res, next) => {
                     // Traitement de la requête SQL
                     connection.query(sqlQuery + ' WHERE id=?', req.params.id, (error) => {
                         if (error) throw new Error(error);
-                        res.status(201).json({ message: 'Mot de passe modifié !'});
+                        connection.end();
+                        return res.status(201).json({ message: 'Mot de passe modifié !'});
                     });
                 })
                 .catch(() => res.status(500).json({ errorMessage: 'hash erreur' }));
             })
-            connection.end();
         })
     });
 };

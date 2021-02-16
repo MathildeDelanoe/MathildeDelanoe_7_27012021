@@ -15,6 +15,11 @@ exports.savePost = (req, res, next) => {
     // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
+        if (req.body.message.length === 0 && !req.file)
+        {
+            connection.end();
+            return res.status(403).json({ errorMessage: 'Message vide !'});
+        }
         // Si le texte du message présente des apostrophes, on double les apostrophes pour éviter les erreurs sql
         let messageSplit = req.body.message.split("'");
         let message = messageSplit[0];
@@ -22,10 +27,6 @@ exports.savePost = (req, res, next) => {
         {
             message += "''";
             message += messageSplit[index];
-        }
-        if (message.length === 0)
-        {
-            return res.status(403).json({ errorMessage: 'Message vide !'});
         }
         if (req.file)
         {
@@ -40,8 +41,8 @@ exports.savePost = (req, res, next) => {
             // Traitement de la requête SQL
             connection.query(sqlQuery, (error) => {
                 if (error) throw new Error(error);
-                res.status(201).json({ message: 'Post créé !'});
                 connection.end();
+                return res.status(201).json({ message: 'Post créé !'});
             });
         }
         else
@@ -59,8 +60,8 @@ exports.savePost = (req, res, next) => {
                 // Traitement de la requête SQL
                 connection.query(sqlQuery, (error) => {
                     if (error) throw new Error(error);
-                    res.status(201).json({ message: 'Commentaire créé !'});
                     connection.end();
+                    return res.status(201).json({ message: 'Commentaire créé !'});
                 });
             }
             else
@@ -74,8 +75,8 @@ exports.savePost = (req, res, next) => {
                 // Traitement de la requête SQL
                 connection.query(sqlQuery, (error) => {
                     if (error) throw new Error(error);
-                    res.status(201).json({ message: 'Post créé !'});
                     connection.end();
+                    return res.status(201).json({ message: 'Post créé !'});
                 });
             }
         }
@@ -95,9 +96,9 @@ exports.getAllPost = (req, res, next) => {
         // Traitement de la requête SQL
         connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id IS NULL ORDER BY date DESC", (error, result) => {
             if (error) throw new Error(error);
-            res.status(201).json({ posts: result});
+            connection.end();
+            return res.status(201).json({ posts: result});
         });
-        connection.end();
     })
 };
 
@@ -114,9 +115,9 @@ exports.getAllCommentsFromPost= (req, res, next) => {
         // Traitement de la requête SQL
         connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id = ? ORDER BY date", req.params.id, (error, result) => {
             if (error) throw new Error(error);
-            res.status(201).json({ comments: result});
+            connection.end();
+            return res.status(201).json({ comments: result});
         });
-        connection.end();
     })
 };
 
@@ -143,10 +144,10 @@ exports.delete = (req, res, next) => {
         // Traitement de la requête SQL
         connection.query("DELETE FROM posts WHERE id=?", req.params.id, (error, result) => {
             if (error) throw new Error(error);
-            res.status(201).json({ 
+            connection.end();
+            return res.status(201).json({ 
                 deletionNumber: result.affectedRows
             });
-            connection.end();
         });
     })
 };

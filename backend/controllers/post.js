@@ -99,7 +99,7 @@ exports.getAllPost = (req, res, next) => {
                           FROM posts \
                           LEFT JOIN employees \
                           ON posts.employee_id=employees.id \
-                          LEFT JOIN (SELECT post_id, count(likes.employee_id) as nb_likes \
+                          LEFT JOIN (SELECT post_id, count(distinct likes.employee_id) as nb_likes \
                           from likes \
                           group by post_id) AS postLike \
                           ON posts.id=postLike.post_id \
@@ -172,17 +172,37 @@ exports.like = (req, res, next) => {
     // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
-        let sqlQuery = "INSERT INTO likes (employee_id, post_id) VALUES ('";
-        sqlQuery += req.body.employeeId;
-        sqlQuery += "', '";
-        sqlQuery += req.params.id;
-        sqlQuery += "');";
-        connection.query(sqlQuery, (error, result) => {
-            if (error) throw new Error(error);
-            connection.end();
-            return res.status(201).json({ 
-                message:"like ajouté"
-            });
+        // Recherche du couple (employé/post) dans la table de like
+        connection.query("SELECT id FROM likes WHERE employee_id=? AND post_id=?", [req.body.employeeId, req.params.id], (error, result) => {
+            if (error) throw new Error(error)
+            if (result.length == 1)
+            {
+                // Le couple a été trouvé, l'employé souhaite enlever son like => Suppression de la ligne dans la table likes
+                connection.query("DELETE FROM likes WHERE id=?", result[0].id, (error, result) => {
+                    if (error) throw new Error(error)
+                    connection.end();
+                    return res.status(201).json({ message: 'Like supprimé' });
+                });
+            }
+            else if (result.length == 0)
+            {
+                // Le couple (employé/post) n'a pas été trouvé, l'employé souhaite aimer le post
+                let sqlQuery = "INSERT INTO likes (employee_id, post_id) VALUES ('";
+                sqlQuery += req.body.employeeId;
+                sqlQuery += "', '";
+                sqlQuery += req.params.id;
+                sqlQuery += "');";
+                connection.query(sqlQuery, (error, result) => {
+                    if (error) throw new Error(error);
+                    connection.end();
+                    return res.status(201).json({ message: 'like ajouté' });
+                });
+            }
+            else
+            {
+                connection.end();
+                return res.status(403).json({ errorMessage: 'L\'employé a liké plusieurs fois le même post' });
+            }
         });
     })
 };

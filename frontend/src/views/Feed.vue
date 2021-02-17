@@ -307,6 +307,8 @@
       },
       likeMessage(postId)
       {
+        let responseStatus;
+        let responseOk;
         let options = 
         {
             method: 'post',
@@ -320,14 +322,19 @@
         fetch('http://localhost:3000/api/post/like/'+ postId, options)
         .then(response =>
         {
-          // responseStatus = response.status;
-          // responseOk = response.ok;
+          responseStatus = response.status;
+          responseOk = response.ok;
           return response.json();
         })
-        .then (()=>
+        .then ((response)=>
         {
+          if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
+          {
+            throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
+          }
           this.getPosts();
         })
+        .catch(error => alert(error))
       },
       setIsDeleteMessageNeeded(messageId, value)
       {

@@ -231,10 +231,13 @@ exports.retrieveEmployeeInfo = (req, res, next) => {
         if (error) throw error;
         connection.query("SELECT * FROM employees WHERE id=?;", req.params.id, (error, result) => { //result est un tableau contenant toutes les lignes retournées
             if (error) throw new Error(error);
-            res.status(200).json({
-                employee: result[0]
-            });
-            connection.end();
+            let employee = result[0];
+            // Récupération des posts que l'employé aime
+            connection.query("SELECT post_id FROM likes WHERE employee_id=? ORDER BY post_id DESC;", req.params.id, (error, result) => {
+                employee = {...employee, likedPosts: result}
+                connection.end();
+                return res.status(200).json({ employee: employee });
+            })
         });
     });
 };

@@ -28,7 +28,7 @@
           <p>{{ singlePost.text }}</p>
         </div>
         <div id="icons">
-          <p @click="likeMessage(singlePost.id)"><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nbLikes }} </p>
+          <p @click="likeMessage(singlePost.id)"><font-awesome-icon :icon="['fas', 'thumbs-up']" :class="{'like':this.likedPost.includes(singlePost.id), 'noLike':!this.likedPost.includes(singlePost.id)}"/> {{ singlePost.nbLikes }} </p>
           <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
           <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singlePost.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
         </div>
@@ -103,7 +103,8 @@
         datePosted: '',
         mapDeletedMessage : new Map(),
         lsAuth: '',
-        lsEmpId: ''
+        lsEmpId: '',
+        likedPost: []
       };
     },
     mounted(){
@@ -221,10 +222,16 @@
         })
         .then(response => 
         {
+          this.likedPost.length = 0;
+          console.log(response.employee.likedPosts)
           let employee = this.formatEmployee(response.employee);
           this.userName = employee.first_name + " " + employee.last_name;
           this.avatar = employee.avatar;
           this.isAdmin = (employee.is_admin.data[0])?true:false;
+          for (let likedPost of employee.likedPosts)
+          {
+            this.likedPost.push(likedPost.post_id);
+          }
         })
         .catch(error => alert(error));
       },
@@ -333,6 +340,7 @@
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
           this.getPosts();
+          this.getEmployeeInfo();
         })
         .catch(error => alert(error))
       },
@@ -475,6 +483,12 @@ h1 {
   }
 }
 
+.like {
+  color:rgb(38,192,251);
+}
+.noLike {
+  color: white;
+}
 
 #posted {
   width:90%;

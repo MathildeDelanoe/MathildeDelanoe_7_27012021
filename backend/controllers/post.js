@@ -151,3 +151,29 @@ exports.delete = (req, res, next) => {
         });
     })
 };
+
+exports.like = (req, res, next) => {
+    console.log("like")
+    let connection = mysql.createConnection({
+        host:process.env.DB_HOST,
+        user:process.env.DB_USER,
+        password:process.env.DB_PASS,
+        database:process.env.DB_NAME
+    });
+    // Connection à la base de données
+    connection.connect(error => {
+        if (error) throw error;
+        let sqlQuery = "INSERT INTO likes (employee_id, post_id) VALUES ('";
+        sqlQuery += req.body.employeeId;
+        sqlQuery += "', '";
+        sqlQuery += req.params.id;
+        sqlQuery += "');";
+        connection.query(sqlQuery, (error, result) => {
+            if (error) throw new Error(error);
+            connection.end();
+            return res.status(201).json({ 
+                message:"like ajouté"
+            });
+        });
+    })
+};

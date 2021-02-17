@@ -28,9 +28,9 @@
           <p>{{ singlePost.text }}</p>
         </div>
         <div id="icons">
-          <p><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
+          <p @click="likeMessage(singlePost.id)"><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
           <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
-          <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeleteMessageNeeded(singlePost.id, true)"/></p>
+          <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singlePost.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
         </div>
         <div id="deletePostBox" v-if="mapDeletedMessage.has(singlePost.id) && mapDeletedMessage.get(singlePost.id)==true">
           <p>Voulez-vous vraiment supprimer votre post?</p>
@@ -50,7 +50,7 @@
               </div>
               <p>{{ singleComment.text }}</p>
             </div>
-            <p v-if="singleComment.employee_id==this.lsEmpId || this.isAdmin===true"><font-awesome-icon :icon="['fas', 'trash']" @click="setIsDeleteMessageNeeded(singleComment.id, true)"/></p>
+            <p v-if="singleComment.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singleComment.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
           </div>
           <div id="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
             <p>Voulez-vous vraiment supprimer votre commentaire?</p>
@@ -313,8 +313,34 @@
         })
         .catch(error => alert(error))
       },
+      likeMessage(postId)
+      {
+        console.log("like message " + postId)
+        let options = 
+        {
+            method: 'post',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+            },
+            body: JSON.stringify({  employeeId : this.lsEmpId }) // Remplissage du body de la requête avec les informations nécessaires
+        };
+        // Envoi de la requête via fetch pour s'enregistrer
+        fetch('http://localhost:3000/api/post/like/'+ postId, options)
+        .then(response =>
+        {
+          // responseStatus = response.status;
+          // responseOk = response.ok;
+          return response.json();
+        })
+        .then (response=>
+        {
+          console.log(response)
+        })
+      },
       setIsDeleteMessageNeeded(messageId, value)
       {
+        console.log("setIsDeleteMessageNeeded")
         if (value === false)
         {
           this.mapDeletedMessage.delete(messageId);
@@ -399,6 +425,7 @@ h1 {
   margin-top:30px;
   font-size:1.5em;
 }
+
 #post {
   width:80%;
   margin:40px auto;
@@ -631,6 +658,11 @@ button {
 
     #post, #posted {
       width:40%;
+    }
+
+    body {
+      // background-color:rgb(230,235,242);
+       background-color:rgb(238,241,247);
     }
   }
 

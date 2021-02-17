@@ -94,7 +94,17 @@ exports.getAllPost = (req, res, next) => {
     connection.connect(error => {
         if (error) throw error;
         // Traitement de la requête SQL
-        connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id IS NULL ORDER BY date DESC", (error, result) => {
+        // connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar FROM posts LEFT JOIN employees ON employee_id=employees.id WHERE post_id IS NULL ORDER BY date DESC", (error, result) => {
+        connection.query("SELECT posts.*, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') as formatedDate, first_name, last_name, avatar, IFNULL(postLike.nb_likes, 0) as nbLikes\
+                          FROM posts \
+                          LEFT JOIN employees \
+                          ON posts.employee_id=employees.id \
+                          LEFT JOIN (SELECT post_id, count(likes.employee_id) as nb_likes \
+                          from likes \
+                          group by post_id) AS postLike \
+                          ON posts.id=postLike.post_id \
+                          WHERE posts.post_id IS NULL \
+                          ORDER BY date DESC;", (error, result) => {
             if (error) throw new Error(error);
             connection.end();
             return res.status(201).json({ posts: result});
@@ -153,7 +163,6 @@ exports.delete = (req, res, next) => {
 };
 
 exports.like = (req, res, next) => {
-    console.log("like")
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,

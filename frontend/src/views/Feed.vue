@@ -28,7 +28,7 @@
           <p>{{ singlePost.text }}</p>
         </div>
         <div id="icons">
-          <p @click="likeMessage(singlePost.id)"><font-awesome-icon :icon="['fas', 'thumbs-up']"/> 0 </p>
+          <p @click="likeMessage(singlePost.id)"><font-awesome-icon :icon="['fas', 'thumbs-up']"/> {{ singlePost.nbLikes }} </p>
           <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
           <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singlePost.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
         </div>
@@ -141,7 +141,6 @@
       },
       async fetchComments(post)
       {
-        console.log("fetchComments of post " + post.id)
         let options = 
         {
             method: 'get',
@@ -159,7 +158,6 @@
         {
           comment.avatar = (comment.avatar === null)?"": comment.avatar;
         }
-        console.log("output of fecthComments of post " + post.id)
         return post;
       },
       getPosts(){
@@ -188,16 +186,10 @@
         })
         .then(async response => 
         {
-          console.log("out of fetchPost")
-          console.log(response.posts)
           for (let post of response.posts)
           {
-            console.log("entry of for loop");
-            console.log(post)
             await this.fetchComments(post)
             .then(post => {
-              console.log("Just before filling the feedPosts")
-              console.log(post)
               this.feedPosts.push(post);
             });
           }
@@ -315,7 +307,6 @@
       },
       likeMessage(postId)
       {
-        console.log("like message " + postId)
         let options = 
         {
             method: 'post',
@@ -333,14 +324,13 @@
           // responseOk = response.ok;
           return response.json();
         })
-        .then (response=>
+        .then (()=>
         {
-          console.log(response)
+          this.getPosts();
         })
       },
       setIsDeleteMessageNeeded(messageId, value)
       {
-        console.log("setIsDeleteMessageNeeded")
         if (value === false)
         {
           this.mapDeletedMessage.delete(messageId);

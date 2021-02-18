@@ -35,13 +35,13 @@
         <div id="deletePostBox" v-if="mapDeletedMessage.has(singlePost.id) && mapDeletedMessage.get(singlePost.id)==true">
           <p>Voulez-vous vraiment supprimer votre post?</p>
           <div>
-            <button @click="deleteMessage(singlePost.id)">Oui</button>
+            <button @click="deleteMessage(singlePost.id, indexPost, 'post')">Oui</button>
             <button @click="setIsDeleteMessageNeeded(singlePost.id, false)">Non</button>
           </div>
         </div>
       </div>
       <div id="comments">
-        <div id ="fullComment" v-for="singleComment in singlePost.comments" :key="singleComment">
+        <div id ="fullComment" v-for="(singleComment, indexComment) in singlePost.comments" :key="singleComment">
           <div>
             <avatar :fullname="singleComment.first_name + ' ' + singleComment.last_name" :image="singleComment.avatar" :size="30" id="avatar"></avatar>
             <div id="commentsText">
@@ -55,7 +55,7 @@
           <div id="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
             <p>Voulez-vous vraiment supprimer votre commentaire?</p>
             <div>
-              <button @click="deleteMessage(singleComment.id)">Oui</button>
+              <button @click="deleteMessage(singleComment.id, indexPost, 'comment', indexComment)">Oui</button>
               <button @click="setIsDeleteMessageNeeded(singleComment.id, false)">Non</button>
             </div>
           </div>
@@ -374,7 +374,7 @@
         }
         this.mapDeletedMessage.set(messageId, value);
       },
-      deleteMessage(messageId)
+      deleteMessage(messageId, indexPost, messageType, indexComment = -1)
       {
         // Initialisation des options de la méthode fetch
         let options = 
@@ -402,7 +402,20 @@
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un message a été supprimé!");
           this.setIsDeleteMessageNeeded(messageId, false);
-          this.getPosts();
+          if (messageType === 'post')
+          {
+            // Suppression d'un post
+            this.feedPosts.splice(indexPost, 1); // Suppression du post
+          }
+          else if (messageType === 'comment')
+          {
+            // Suppression d'un commentaire
+            this.feedPosts[indexPost].comments.splice(indexComment, 1);
+          }
+          else
+          {
+            alert('Mauvaise valeur de type de message');
+          }
         })
         .catch(error => alert(error))
       },

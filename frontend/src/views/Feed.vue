@@ -224,7 +224,6 @@
         .then(response => 
         {
           this.likedPost.length = 0;
-          console.log(response.employee.likedPosts)
           let employee = this.formatEmployee(response.employee);
           this.userName = employee.first_name + " " + employee.last_name;
           this.avatar = employee.avatar;
@@ -281,7 +280,7 @@
                 'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
               },
               body: JSON.stringify({  employeeId : this.lsEmpId,
-                                      message : postContent}) // Remplissage du body de la requête avec les informations nécessaires
+                                      message : postContent }) // Remplissage du body de la requête avec les informations nécessaires
           };
         }
         // Envoi de la requête via fetch pour s'enregistrer
@@ -298,6 +297,36 @@
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
+
+          let newPost = {};
+          if (formInputs[0].files.length !== 0)
+          {
+            newPost = {id: response.id,
+                      employee_id: this.lsEmpId,
+                      first_name: this.userName.split(' ')[0],
+                      last_name: this.userName.split(' ')[1],
+                      avatar: this.avatar,
+                      formatedDate: response.date,
+                      picture: response.picture,
+                      text :response.content,
+                      nbLikes: 0};
+          }
+          else
+          {
+            newPost = {id: response.id,
+                      employee_id: this.lsEmpId,
+                      first_name: this.userName.split(' ')[0],
+                      last_name: this.userName.split(' ')[1],
+                      avatar: this.avatar,
+                      formatedDate: response.date,
+                      picture: null,
+                      text :response.content,
+                      nbLikes: 0};
+          }
+          newPost.comments = [];
+          
+          this.feedPosts.unshift(newPost);
+
           document.getElementById("newPost").value = '';
           if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
           {
@@ -309,7 +338,6 @@
           while(picturePreview.firstChild) {
             picturePreview.removeChild(picturePreview.firstChild);
           }
-          this.getPosts();
         })
         .catch(error => alert(error))
       },

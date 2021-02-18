@@ -40,10 +40,16 @@ exports.savePost = (req, res, next) => {
             sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
             sqlQuery += "');";
             // Traitement de la requête SQL
-            connection.query(sqlQuery, (error) => {
+            connection.query(sqlQuery, (error, result) => {
                 if (error) throw new Error(error);
-                connection.end();
-                return res.status(201).json({ message: 'Post créé !'});
+                connection.query("SELECT id, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') AS formatedDate, text, picture FROM posts WHERE id=?", result.insertId, (error, result) => {
+                    if (error) throw new Error(error);
+                    connection.end();
+                    return res.status(201).json({ id: result[0].id,
+                                                  date: result[0].formatedDate,
+                                                  picture: result[0].picture,
+                                                  content: result[0].text });
+                });
             });
         }
         else
@@ -81,10 +87,15 @@ exports.savePost = (req, res, next) => {
                 sqlQuery += message;
                 sqlQuery += "');";
                 // Traitement de la requête SQL
-                connection.query(sqlQuery, (error) => {
+                connection.query(sqlQuery, (error, result) => {
                     if (error) throw new Error(error);
-                    connection.end();
-                    return res.status(201).json({ message: 'Post créé !'});
+                    connection.query("SELECT id, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') AS formatedDate, text FROM posts WHERE id=?", result.insertId, (error, result) => {
+                        if (error) throw new Error(error);
+                        connection.end();
+                        return res.status(201).json({ id: result[0].id,
+                                                      date: result[0].formatedDate,
+                                                      content: result[0].text });
+                    });
                 });
             }
         }

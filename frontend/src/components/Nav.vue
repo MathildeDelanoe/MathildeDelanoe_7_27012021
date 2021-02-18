@@ -3,7 +3,7 @@
   <div id="nav">
     <img alt="logo groupomania" src="../assets/logo_groupomania.png">
     <div id = "navConnected" v-if="isConnected">
-      <router-link to="/profile">
+      <router-link to="/profile" replace>
         <div>
           <avatar :fullname="fullName" :image="avatar" id="largeAvatarNav"></avatar>
           <avatar :fullname="fullName" :image="avatar" :size="40" id="smallAvatarNav"></avatar>

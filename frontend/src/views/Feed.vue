@@ -450,7 +450,14 @@
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
           document.querySelectorAll("form input")[post_index].value = '';
-          this.getPosts();
+          let newComment = {id: response.id,
+                            employee_id: this.lsEmpId,
+                            first_name: this.userName.split(' ')[0],
+                            last_name: this.userName.split(' ')[1],
+                            avatar: this.avatar,
+                            formatedDate: response.date,
+                            text :response.content};
+          this.feedPosts[post_index].comments.push(newComment);
         })
         .catch(error => alert(error))
       }

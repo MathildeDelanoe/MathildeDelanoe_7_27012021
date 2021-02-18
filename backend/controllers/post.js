@@ -28,6 +28,7 @@ exports.savePost = (req, res, next) => {
             message += "''";
             message += messageSplit[index];
         }
+        // Réception d'un post avec un fichier
         if (req.file)
         {
             // Construction de la requête SQL
@@ -47,9 +48,10 @@ exports.savePost = (req, res, next) => {
         }
         else
         {
-            // Réception d'un post ou d'un commentaire
+            // Réception d'un post ou d'un commentaire sans contenu multimédia
             if (req.body.postId)
             {
+                // Création d'un commentaire
                 let sqlQuery = "INSERT INTO posts (employee_id, date, text, post_id) VALUES ('";
                 sqlQuery += req.body.employeeId;
                 sqlQuery += "', NOW(), '";
@@ -58,14 +60,20 @@ exports.savePost = (req, res, next) => {
                 sqlQuery += req.body.postId;
                 sqlQuery += "');";
                 // Traitement de la requête SQL
-                connection.query(sqlQuery, (error) => {
+                connection.query(sqlQuery, (error, result) => {
                     if (error) throw new Error(error);
-                    connection.end();
-                    return res.status(201).json({ message: 'Commentaire créé !'});
+                    connection.query("SELECT id, DATE_FORMAT(date, 'Le %d/%m/%Y à %Hh%i') AS formatedDate, text FROM posts WHERE id=?", result.insertId, (error, result) => {
+                        if (error) throw new Error(error);
+                        connection.end();
+                        return res.status(201).json({ id: result[0].id,
+                                                      date: result[0].formatedDate,
+                                                      content: result[0].text });
+                    });
                 });
             }
             else
             {
+                // Création d'un post
                 // Construction de la requête SQL
                 let sqlQuery = "INSERT INTO posts (employee_id, date, text) VALUES ('";
                 sqlQuery += req.body.employeeId;
@@ -178,7 +186,7 @@ exports.like = (req, res, next) => {
             if (result.length == 1)
             {
                 // Le couple a été trouvé, l'employé souhaite enlever son like => Suppression de la ligne dans la table likes
-                connection.query("DELETE FROM likes WHERE id=?", result[0].id, (error, result) => {
+                connection.query("DELETE FROM likes WHERE id=?", result[0].id, (error) => {
                     if (error) throw new Error(error)
                     connection.end();
                     return res.status(201).json({ like: 0 });
@@ -192,7 +200,7 @@ exports.like = (req, res, next) => {
                 sqlQuery += "', '";
                 sqlQuery += req.params.id;
                 sqlQuery += "');";
-                connection.query(sqlQuery, (error, result) => {
+                connection.query(sqlQuery, (error) => {
                     if (error) throw new Error(error);
                     connection.end();
                     return res.status(201).json({ like: 1 });

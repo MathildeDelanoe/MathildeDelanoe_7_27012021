@@ -236,12 +236,6 @@ exports.getAllPostsFromEmployee = (req, res, next) => {
     // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
-        // It seems to be useless
-        // if (fullNameSplited === '')
-        // {
-        //     connection.end();
-        //     return res.status(403).json({ errorMessage: 'Le champ de recherche ne peut être vide' });
-        // }
         let fullNameSplited = req.params.fullName.split(' ');
         let lastName = fullNameSplited[0];
         let firstName = fullNameSplited[1];
@@ -254,6 +248,10 @@ exports.getAllPostsFromEmployee = (req, res, next) => {
                           [firstName, lastName], (error, result) => {
             if (error) throw new Error(error);
             connection.end();
+            if (result.length === 0)
+            {
+                return res.status(403).json({ errorMessage: 'Aucun employé connu sous Nom Prénom : ' + lastName + ' ' + firstName});
+            }
             return res.status(201).json({ postIds: result });
         });      
     });

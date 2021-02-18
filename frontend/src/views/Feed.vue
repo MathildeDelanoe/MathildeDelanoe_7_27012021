@@ -18,8 +18,9 @@
     <div id="searchPerson">
       <p><font-awesome-icon :icon="['fas', 'search']"/>
         <label for="search"></label>
-        <input type="search" id="search" name="q" placeholder="Rechercher un(e) collègue (Nom Prénom)" aria-label="Recherche dans les posts"> <!-- aria-label? name="q" ?-->
+        <input type="search" id="search" name="q" placeholder="Rechercher un(e) collègue (Nom Prénom)" aria-label="Recherche dans les posts" @change="reloadAllPosts"> <!-- aria-label? name="q" ?-->
         <button @click="printSpecificPosts()">Rechercher</button>
+        <button @click="printSpecificPosts('mine')">Mes posts</button>
       </p>
     </div>
     <div id="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
@@ -497,16 +498,20 @@
         })
         .catch(error => alert(error))
       },
-      printSpecificPosts()
+      printSpecificPosts(option)
       {
         let responseStatus;
         let responseOk;
         // Récupération de l'input html contenant le champ de recherche
         let searchedEmployee = document.getElementById("search").value;
-        if (searchedEmployee === '')
+        if (searchedEmployee === '' && option !== 'mine')
         {
           alert('Le champ est vide');
           return;
+        }
+        if (option === 'mine')
+        {
+          searchedEmployee = this.userName.split(' ')[1] + ' ' + this.userName.split(' ')[0];
         }
         // Initialisation des options de la méthode fetch
         let options = 
@@ -527,35 +532,47 @@
         })
         .then(response => 
         {
-          console.log(response)
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
+
+          for (let post of this.feedPosts)
+          {
+            this.historyFeedPosts.push(post);
+          }
           
           for (let postId of response.postIds)
           {
-            // console.log("from request : " + postId.id)
             for (let post of this.feedPosts)
             {
-            //   console.log("from current posts : " + post.id)
-              this.historyFeedPosts.push(post);
               if (post.id === postId.id)
               {
-                console.log('catch')
                 this.searchFeedPosts.push(post);
               }
             }
           }
-          console.log(this.searchFeedPosts)
-          console.log(this.historyFeedPosts)
           this.feedPosts.length = 0;
           for (let searchPost of this.searchFeedPosts)
           {
             this.feedPosts.push(searchPost);
           }
+          this.searchFeedPosts.length = 0;
         })
         .catch(error => alert(error));
+      },
+      reloadAllPosts()
+      {
+        let searchedEmployee = document.getElementById("search").value;
+        if (searchedEmployee === '')
+        {
+          this.feedPosts.length = 0;
+          for (let savedPost of this.historyFeedPosts)
+          {
+            this.feedPosts.push(savedPost);
+          }
+          this.historyFeedPosts.length = 0;
+        }
       }
     }
   }

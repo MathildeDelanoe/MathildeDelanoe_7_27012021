@@ -28,7 +28,7 @@
           <p>{{ singlePost.text }}</p>
         </div>
         <div id="icons">
-          <p @click="likeMessage(singlePost.id)"><font-awesome-icon :icon="['fas', 'thumbs-up']" :class="{'like':this.likedPost.includes(singlePost.id), 'noLike':!this.likedPost.includes(singlePost.id)}"/> {{ singlePost.nbLikes }} </p>
+          <p @click="likeMessage(singlePost.id, indexPost)"><font-awesome-icon :icon="['fas', 'thumbs-up']" :class="{'like':this.likedPost.includes(singlePost.id), 'noLike':!this.likedPost.includes(singlePost.id)}"/> {{ singlePost.nbLikes }} </p>
           <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
           <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singlePost.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
         </div>
@@ -63,7 +63,8 @@
         <div>
           <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
-            <input class="input" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id, indexPost)">Envoyer</button>
+            <label for="sendComment" class="labelComment">Votre commentaire</label>
+            <input id="sendComment" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id, indexPost)">Envoyer</button>
           </form>
         </div>
       </div>
@@ -312,7 +313,7 @@
         })
         .catch(error => alert(error))
       },
-      likeMessage(postId)
+      likeMessage(postId, indexPost)
       {
         let responseStatus;
         let responseOk;
@@ -339,8 +340,28 @@
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
-          this.getPosts();
-          this.getEmployeeInfo();
+          if (response.like)
+          {
+            // Si l'employé aime le post
+            // Mise à jour du tableau de like de l'employé courant en rajoutant le post dans le tableau de like
+            this.likedPost.push(postId);
+            // Mise à jour du nombre de likes du post courant
+            this.feedPosts[indexPost].nbLikes++;
+          }
+          else
+          {
+            // Si l'employé n'aime plus post
+            // Mise à jour du tableau de like de l'employé courant en supprimant le post dans le tableau de like
+            const index = this.likedPost.indexOf(postId); // Recherche de l'index du tableau où le postId se trouve
+            if (index > -1) // Normalement, cette condition est toujours vraie
+            {
+              this.likedPost.splice(index, 1); // Suppression de ce postID
+            }
+            // Mise à jour du nombre de likes du post courant
+            this.feedPosts[indexPost].nbLikes--;
+          }
+          // this.getPosts();
+          // this.getEmployeeInfo();
         })
         .catch(error => alert(error))
       },
@@ -601,7 +622,7 @@ h1 {
   display:flex;
 }
 
-.input {
+#sendComment {
   border-radius:5px 0px 0px 5px;
   padding:5px;
   margin-left:5px;
@@ -642,7 +663,6 @@ button {
 }
 
 #deleteCommentBox {
-  color:rgb(224,18,29);
   border:1px solid black;
   width:95%;
   border-radius:5px;
@@ -665,6 +685,10 @@ button {
   }
 }
 
+.labelComment {
+  display:none;
+}
+
   @media screen and (min-width:1500px) {
 
     #post, #posted {
@@ -672,7 +696,6 @@ button {
     }
 
     body {
-      // background-color:rgb(230,235,242);
        background-color:rgb(238,241,247);
     }
   }

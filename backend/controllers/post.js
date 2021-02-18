@@ -181,7 +181,7 @@ exports.like = (req, res, next) => {
                 connection.query("DELETE FROM likes WHERE id=?", result[0].id, (error, result) => {
                     if (error) throw new Error(error)
                     connection.end();
-                    return res.status(201).json({ message: 'Like supprimé' });
+                    return res.status(201).json({ like: 0 });
                 });
             }
             else if (result.length == 0)
@@ -195,7 +195,7 @@ exports.like = (req, res, next) => {
                 connection.query(sqlQuery, (error, result) => {
                     if (error) throw new Error(error);
                     connection.end();
-                    return res.status(201).json({ message: 'like ajouté' });
+                    return res.status(201).json({ like: 1 });
                 });
             }
             else

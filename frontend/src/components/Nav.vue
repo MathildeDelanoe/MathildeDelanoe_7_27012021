@@ -103,8 +103,6 @@
     a {
       &.router-link-exact-active {
         text-decoration: underline;
-        // color:white;
-        color:rgb(209,81,90);
       }
     }
   }

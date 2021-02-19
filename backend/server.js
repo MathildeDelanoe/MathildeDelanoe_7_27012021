@@ -72,6 +72,12 @@ io.sockets.on('connection', (socket) => {
     socket.broadcast.emit('likeSocketBroadcast', {idPost: likeMessage.idPost,
                                                   like: likeMessage.like}); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
   });
+  socket.on('deleteSocketEmit', deleteMessage => {
+    console.log(deleteMessage.idMessage)
+    console.log(deleteMessage.isComment)
+    socket.broadcast.emit('deleteSocketBroadcast', {idMessage: deleteMessage.idMessage,
+                                                    isComment: deleteMessage.isComment}); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
+  });
 });
 
 // Le serveur écoute le port défini plus haut

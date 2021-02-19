@@ -185,6 +185,46 @@
           }
         }
       });
+      this.socket.on('deleteSocketBroadcast', deleteMessage =>{
+        let postIndex = -1;
+        let commentIndex = 0;
+        let found = false;
+        while (found !== true)
+        {
+          ++postIndex;
+          if (this.feedPosts[postIndex].id === deleteMessage.idMessage)
+          {
+            found = true;
+          }
+          else
+          {
+            if (deleteMessage.isComment)
+            {
+              commentIndex = 0;
+              for (let comment of this.feedPosts[postIndex].comments)
+              {
+                if (comment.id === deleteMessage.idMessage)
+                {
+                  found = true;
+                  break;
+                }
+                ++commentIndex;
+              }
+            }
+          }
+        }
+        if (found)
+        {
+          if (deleteMessage.isComment)
+          {
+            this.feedPosts[postIndex].comments.splice(commentIndex, 1);
+          }
+          else
+          {
+            this.feedPosts.splice(postIndex, 1);
+          }
+        }
+      });
     },
     created()
     {
@@ -499,6 +539,7 @@
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un message a été supprimé!");
           this.setIsDeleteMessageNeeded(messageId, false);
+          let isComment = false;
           if (messageType === 'post')
           {
             // Suppression d'un post
@@ -508,11 +549,13 @@
           {
             // Suppression d'un commentaire
             this.feedPosts[indexPost].comments.splice(indexComment, 1);
+            isComment = true;
           }
           else
           {
             alert('Mauvaise valeur de type de message');
           }
+          this.socket.emit('deleteSocketEmit', { idMessage: messageId, isComment: isComment });
         })
         .catch(error => alert(error))
       },

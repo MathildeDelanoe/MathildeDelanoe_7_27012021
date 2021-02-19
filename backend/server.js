@@ -73,10 +73,14 @@ io.sockets.on('connection', (socket) => {
                                                   like: likeMessage.like}); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
   });
   socket.on('deleteSocketEmit', deleteMessage => {
-    console.log(deleteMessage.idMessage)
-    console.log(deleteMessage.isComment)
     socket.broadcast.emit('deleteSocketBroadcast', {idMessage: deleteMessage.idMessage,
                                                     isComment: deleteMessage.isComment}); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
+  });
+  socket.on('newPostSocketEmit', newPost => {
+    socket.broadcast.emit('newPostSocketBroadcast', { ...newPost }); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
+  });
+  socket.on('newCommentSocketEmit', newComment => {
+    socket.broadcast.emit('newCommentSocketBroadcast', { ...newComment }); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
   });
 });
 

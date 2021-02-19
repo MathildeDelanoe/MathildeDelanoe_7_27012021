@@ -225,6 +225,18 @@
           }
         }
       });
+      this.socket.on('newPostSocketBroadcast', newPost =>{
+        this.feedPosts.unshift(newPost);
+      });
+      this.socket.on('newCommentSocketBroadcast', newComment =>{
+        for (let post of this.feedPosts)
+        {
+          if (post.id === newComment.postId)
+          {
+            post.comments.push(newComment.comment);
+          }
+        }
+      });
     },
     created()
     {
@@ -435,7 +447,7 @@
           newPost.comments = [];
           
           this.feedPosts.unshift(newPost);
-
+          this.socket.emit('newPostSocketEmit', { ...newPost });
           document.getElementById("newPost").value = '';
           if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
           {
@@ -598,6 +610,7 @@
                             formatedDate: response.date,
                             text :response.content};
           this.feedPosts[post_index].comments.push(newComment);
+          this.socket.emit('newCommentSocketEmit', { postId: post_id, comment: newComment });
         })
         .catch(error => alert(error))
       },

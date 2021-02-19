@@ -79,7 +79,7 @@ function checkEmail(email)
     });
 }
 
-// Création du middleware d'enregistrement de nouveaux utilisateurs
+// Création du middleware d'enregistrement de nouveaux employés
 exports.signup = (req, res, next) => {
     let email = req.body.email;
     let password = req.body.password;
@@ -147,7 +147,7 @@ exports.signup = (req, res, next) => {
     .catch(() => {res.status(500).json({ errorMessage: 'Votre email ne remplit pas les critères' })})
 };
 
-// Création du middleware de connexion des utilisateurs
+// Création du middleware de connexion des employés
 exports.login = (req, res, next) => {
     let currentEmail = "";
     /* Comme le cryptage AES utilisé ne permet pas d'obtenir le même cryptage pour une même chaine de départ
@@ -227,8 +227,9 @@ exports.login = (req, res, next) => {
     });
 };
 
-// Exportation du middleware de récupération des infos de l'utilisateur
+// Création du middleware de récupération des infos de l'utilisateur
 exports.retrieveEmployeeInfo = (req, res, next) => {
+    // Connexion à la base de données
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
@@ -237,12 +238,15 @@ exports.retrieveEmployeeInfo = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        connection.query("SELECT * FROM employees WHERE id=?;", req.params.id, (error, result) => { //result est un tableau contenant toutes les lignes retournées
+        // Récupération des données de l'employé dont l'id est passé en paramètre
+        connection.query("SELECT * FROM employees WHERE id=?;", req.params.id, (error, result) => {
             if (error) throw new Error(error);
             let employee = result[0];
             // Récupération des posts que l'employé aime
             connection.query("SELECT post_id FROM likes WHERE employee_id=? ORDER BY post_id DESC;", req.params.id, (error, result) => {
-                employee = {...employee, likedPosts: result}
+                if (error) throw new Error(error);
+                // Création de l'objet de retour contenant les informations de l'employé et le tableau de likes
+                employee = { ...employee, likedPosts: result }
                 connection.end();
                 return res.status(200).json({ employee: employee });
             })
@@ -250,7 +254,9 @@ exports.retrieveEmployeeInfo = (req, res, next) => {
     });
 };
 
+// Création du middleware de suppression de l'employé
 exports.deleteEmployee = (req, res, next) => {
+    // Connexion à la base de données
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
@@ -259,27 +265,27 @@ exports.deleteEmployee = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        // Suppression de la photo de profil de l'employé si elle existe
+        // Sélection de l'avatar de l'employé à supprimer
         connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
             if (error) throw error;
-            if (result[0].avatar)
+            if (result[0].avatar) // Suppression de la photo de profil de l'employé si elle existe
             {
                 const filename = result[0].avatar.split('/images/')[1];
-                fs.unlink('images/' + filename, (err) => { // Suppression de la précédente photo de profil de l'employé
+                fs.unlink('images/' + filename, (err) => { // Suppression de la photo de profil de l'employé
                     if (err) throw err;
                 });
             }
         });
 
-        // Suppression de toutes les photos des posts de l'employé s'il y en a
+        // Sélection des images chargées par l'employé dans ses posts
         connection.query("SELECT picture FROM posts WHERE employee_id=? AND picture IS NOT NULL;", req.params.id, (error, result) => {
             if (error) throw error;
-            for (let line of result)
+            for (let line of result) // Parcours des posts écrits par l'employé
             {
-                if (line.picture)
+                if (line.picture) // Suppression de la photo du post courant de l'employé s'il y en a
                 {
                     const filename = line.picture.split('/images/')[1];
-                    fs.unlink('images/' + filename, (err) => { // Suppression des images postées par l'utilisateur
+                    fs.unlink('images/' + filename, (err) => { // Suppression de l'image postée par l'utilisateur
                         if (err) throw err;
                     });
                 }
@@ -288,17 +294,16 @@ exports.deleteEmployee = (req, res, next) => {
 
         // Suppression du compte de l'employé
         connection.query("DELETE FROM employees WHERE id=?", req.params.id, (error, result) => {
-            //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);
-            res.status(200).json({
-                deletionNumber: result.affectedRows
-            });
             connection.end();
+            return res.status(200).json({ deletionNumber: result.affectedRows });
         });
     });
 };
 
+// Création du middleware de mise à jour du profil de l'employé
 exports.updateEmployee = (req, res, next) => {
+    // Connexion à la base de données
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
@@ -307,15 +312,13 @@ exports.updateEmployee = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        let job = '';
-        let team = '';
-        job = (req.file)?formatDatabaseInput(req.body.job):formatDatabaseInput(req.body.employee.job);
-        team = (req.file)?formatDatabaseInput(req.body.team):formatDatabaseInput(req.body.employee.team);
+        let job = formatDatabaseInput(req.body.job);
+        let team = formatDatabaseInput(req.body.team);
 
         let sqlQuery = "UPDATE employees SET job = '";
-        sqlQuery += formatDatabaseInput(job);
+        sqlQuery += job;
         sqlQuery += "', team = '";
-        sqlQuery += formatDatabaseInput(team);
+        sqlQuery += team;
         sqlQuery += "'";
         if (req.file)
         {
@@ -325,70 +328,67 @@ exports.updateEmployee = (req, res, next) => {
             // Récupération de la précédente image de profil
             connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
                 if (error) throw error;
-                if (result[0].avatar)
+                if (result[0].avatar) // S'il existe une image déjà enregistrée, on la supprime
                 {
-                    // Il existe une image déjà enregistrée, on la supprime
                     const filename = result[0].avatar.split('/images/')[1];
-                    fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
+                    fs.unlink('images/' + filename, (err) => { // Suppression de la précédente photo de profil
                         if (err) throw err;
                     });
                 }
             });
         }
-        else
+        else // La modification de profil n'entraîne pas de changement de photo de profil
         {
-            // La modification de profil n'entraîne pas de changement de photo de profil
-            if (req.body.employee.removeAvatar)
+            if (req.body.removeAvatar) // L'utilisateur souhaite supprimer sa photo de profil
             {
-                // L'utilisateur souhaite supprimer sa photo de profil
                 sqlQuery += ", avatar = NULL";
+                // Récupération de la précédente image de profil
                 connection.query("SELECT avatar FROM employees WHERE id=?;", req.params.id, (error, result) => {
                     if (error) throw error;
-                    if (result[0].avatar)
+                    if (result[0].avatar) // S'il existe une image déjà enregistrée, on la supprime
                     {
                         const filename = result[0].avatar.split('/images/')[1];
-                        fs.unlink('images/' + filename, (err) => { // Suppression de la précédente image stockée pour cette Sauce
+                        fs.unlink('images/' + filename, (err) => { // Suppression de la précédente photo de profil
                             if (err) throw err;
                         });
                     }
                 });
             }
         }
+        // Mise à jour du profil de l'employé
         connection.query(sqlQuery + " WHERE id=?;", req.params.id, (error, result) => {
-            //result est un tableau contenant des informations sur comment la table a été impactée
             if (error) throw new Error(error);
+            connection.end();
             if (req.file)
             {
-                res.status(200).json({
-                    updatedNumber: result.affectedRows,
-                    filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-                });
+                return res.status(200).json({ updatedNumber: result.affectedRows,
+                                              filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+                                            });
             }
-            else
-            {
-                res.status(200).json({
-                    updatedNumber: result.affectedRows,
-                    filename: null
-                });
-            }
-            connection.end();
+            
+            return res.status(200).json({ updatedNumber: result.affectedRows,
+                                          filename: null
+                                        });
         });
     });
 };
 
+// Création du middleware de mise à jour du mot de passe de l'employé
 exports.updatePassword = (req, res, next) => {
+    // Connexion à la base de données
     let connection = mysql.createConnection({
         host:process.env.DB_HOST,
         user:process.env.DB_USER,
         password:process.env.DB_PASS,
         database:process.env.DB_NAME
     });
-    // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
+        // Sélection du mot de passe et de l'id de l'employé considéré
         connection.query('SELECT password, id FROM employees WHERE id=?', req.params.id, (error,result) => {
             if (error) throw error;
-            bcrypt.compare(req.body.password.oldPassword, result[0].password)
+            // Comparaison des mots de passe
+            bcrypt.compare(req.body.oldPassword, result[0].password)
             .then(valid =>
             {
                 /* valid est un booléen qui retourne si la comparaison est validée :
@@ -397,15 +397,15 @@ exports.updatePassword = (req, res, next) => {
                 */
                 if (!valid)
                 {
-                    // connection.end();
                     // Le mot de passe fourni diffère de celui enregistré dans la BDD => envoi d'une réponse avec erreur
                     connection.end();
                     return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                 }
-                // Le mot de passe est correct, on peut changer par le nouveau
-                bcrypt.hash(req.body.password.newPassword, 10) // 10 itérations
+                // Le mot de passe est correct, on peut changer par le nouveau en le hashant tout d'abord
+                bcrypt.hash(req.body.newPassword, 10) // 10 itérations
                 .then(hash =>
                 {
+                    // Mise à jour du mot de passe de l'employé considéré
                     let sqlQuery = "UPDATE employees SET password='";
                     sqlQuery += hash;
                     sqlQuery += "'";

@@ -9,21 +9,23 @@
           <p> Prénom : {{ this.employee.first_name }}</p>
           <p> Poste occupé : {{ this.employee.job }}</p>
           <p> Equipe : {{ this.employee.team }}</p>
-          <button @click="setIsDeleteAccountNeeded()"> Supprimer le compte </button>
-          <button @click="updateProfile()"> Modifier le compte </button>
-          <button @click="updatePassword()"> Modifier le mot de passe </button>
+          <button @click="setIsDeleteAccount()"> Supprimer le compte </button>
+          <button @click="setIsProfileUpdate()"> Modifier le compte </button>
+          <button @click="setIsUpdatePassword()"> Modifier le mot de passe </button>
         </div>
         <div class="avatar">
           <avatar :fullname="userName" :image="this.employee.avatar" id="smallAvatarProfile"></avatar>
           <avatar :fullname="userName" :image="this.employee.avatar" :size="200" id="largeAvatarProfile"></avatar>
         </div>
+        <!-- Message de confirmation de suppression du compte -->
         <div id="deleteAccountBox" v-if="this.isDeletedAccount" >
           <p>Voulez-vous vraiment supprimer votre compte? Dans ce cas, tous vos posts seront supprimés.</p>
           <div>
             <button @click="deleteAccount()">Oui</button>
-            <button @click="unsetIsDeleteAccountNeeded()">Non</button>
+            <button @click="unsetIsDeleteAccount()">Non</button>
           </div>
         </div>
+        <!-- Message pour changement de mot de passe -->
         <div id="updatePasswordBox" v-if="this.isUpdatePassword" >
           <p>Modification du mot de passe </p>
           <div>
@@ -44,7 +46,8 @@
           </div>
         </div>
       </div>
-      <div id="validationForm" v-if="this.isProfileUpdateNeeded">
+      <!-- Message pour mettre à jour le profil -->
+      <div id="validationForm" v-if="this.isProfileUpdate">
         <div>
           <label for="job">Poste : </label>
           <input type="text" id="job" :value="this.employee.job">
@@ -63,13 +66,8 @@
           <label for="no">Non</label>
           <input type="radio" id="yes" name="avatarChoice" value="yes">
           <label for="yes">Oui</label>
-          <!-- <label for="avatar" class="label-file">Supprimer l'avatar : </label>
-          <input type="submit" id="submitButton" value="Supprimer l'image"> -->
         </div>
-        <!-- <input type="submit" id="submitButton" value="Mettre à jour" @click="sendProfileUpdate()"> -->
         <button @click="sendProfileUpdate()"> Mettre à jour </button>
-        <!-- <input type="submit" id="submitButton" value="Supprimer l'image"> -->
-        <!-- <button> Supprimer l'image</button> -->
       </div>
     </div>
     <div id="retour">
@@ -95,9 +93,7 @@
       return {
         userName: '',
         employee: {},
-        message: 'Hello',
-        avatar: '',
-        isProfileUpdateNeeded: false,
+        isProfileUpdate: false,
         isDeletedAccount: false,
         isUpdatePassword: false,
         lsAuth: '',
@@ -105,18 +101,21 @@
       };
     },
     mounted(){
+      // Au montage de la page, on vérifie si un utilisateur est déjà connecté par lecture du local storage
       this.lsAuth = localStorage.getItem('auth');
       this.lsEmpId = localStorage.getItem('employeeId');
-      if (this.lsAuth === null || this.lsEmpId === null)
+      if (this.lsAuth === null || this.lsEmpId === null) // Si l'une des clés n'existe pas dans le local storage
       {
-        this.$router.push({ name: 'Login' });
+        this.$router.push({ name: 'Login' }); // Redirection vers la page de connexion
         return;
       }
-      if (this.lsAuth.length === 0 || this.lsEmpId.length === 0)
+      if (this.lsAuth.length === 0 || this.lsEmpId.length === 0) // Si l'une des clés est vide
       {
-        this.$router.push({ name: 'Login' });
+        this.$router.push({ name: 'Login' }); // Redirection vers la page de connexion
         return;
       }
+
+      // Au montage de cette page, on souhaite obtenir les infos de l'utilisateur
       // Initialisation des options de la méthode fetch
       let options = 
       {
@@ -140,6 +139,7 @@
       })
       .then(response => 
       {
+        // Formattage des données de l'employé
         this.employee = this.formatEmployee(response.employee);
         this.userName = this.employee.first_name + " " + this.employee.last_name;
         this.avatar = this.employee.avatar;
@@ -148,84 +148,97 @@
     },
     methods: 
     {
+      // Cette fonction formatte quelque peu les informations récupérées de la bdd pour l'employé
       formatEmployee(employeeRaw)
       {
         let formattedEmployee = employeeRaw;
+        // Si l'avatar est non présent, retour d'une chaîne vide
         if (formattedEmployee.avatar === null)
           formattedEmployee.avatar = "";
+        // Si le job est non présent, retour d'une chaîne "Non renseigné"
         if (formattedEmployee.job === null || formattedEmployee.job.length===0)
           formattedEmployee.job = "Non renseigné";
         if (formattedEmployee.team === null || formattedEmployee.job.length===0)
           formattedEmployee.team = "Non renseigné";
         return formattedEmployee;
       },
-      updatePassword()
+      // Valoriser isUpdatePassword à 'true' pour afficher le message correspondant
+      setIsUpdatePassword()
       {
         this.isUpdatePassword = true;
       },
+      // Valoriser isUpdatePassword à 'false' pour cacher le message correspondant
       unsetIsUpdatePassword()
       {
         this.isUpdatePassword = false;
       },
+      // Appel de la fonction qui envoie le changement de mot de passe à la bdd
       sendPasswordUpdate()
       {
         let responseStatus;
         let responseOk;
+        // Récupération des inputs du formulaire de changement de mot de passe
         let formInputs = document.querySelectorAll("#updatePasswordBox input");
-        // Création de l'objet JS de contact avec les informations nécessaires
-        let passwords= {
+        // Création de l'objet JS de changement de mot de passe
+        let passwords = {
             oldPassword : formInputs[0].value,
             newPassword : formInputs[1].value,
             confPassword : formInputs[2].value,
         };
-        if (!formInputs[1].checkValidity())
+
+        if (!formInputs[1].checkValidity()) // Si le nouveau mot de passe ne remplit pas les critères
         {
           alert('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial (!@#$&*), 1 chiffre et avoir 8 caractères minimum')
           return;
         }
-        if (passwords.newPassword !== passwords.confPassword)
+        if (passwords.newPassword !== passwords.confPassword) // Si les mots de passe diffèrent
         {
           alert('Les deux nouveaux mots de passes sont différents!')
           return;
         }
+
+        // Initialisation des options de la méthode fetch
         let options =
         {
           method: 'put',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth , // this.auth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
-            body: JSON.stringify({password : passwords}) // Remplissage du body de la requête avec les informations nécessaires
+            body: JSON.stringify({ ...passwords })
         };
         fetch('http://localhost:3000/api/employee/password/' + this.lsEmpId, options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then((response) => 
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
+          // Une fois la modification effectuée, nous pouvons cacher de nouveau le formulaire correspondant
+          // en remettant le booléen correspondant à 'false'
           this.unsetIsUpdatePassword();
         })
         .catch(error => alert(error));
       },
-      updateProfile()
-      {
-        this.isProfileUpdateNeeded = true;
-      },
-      setIsDeleteAccountNeeded()
+      // Valoriser isDeletedAccount à 'true' pour afficher le message correspondant
+      setIsDeleteAccount()
       {
         this.isDeletedAccount = true;
       },
-      unsetIsDeleteAccountNeeded()
+      // Valoriser isDeletedAccount à 'false' pour afficher le message correspondant
+      unsetIsDeleteAccount()
       {
         this.isDeletedAccount = false;
       },
+      // Appel de la fonction qui demande la suppresion de l'employé de la BDD
       deleteAccount()
       {
         // Initialisation des options de la méthode fetch
@@ -234,8 +247,8 @@
             method: 'delete',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
-            },
+              'Authorization': 'Bearer ' + this.lsAuth
+            }
         };
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
@@ -252,13 +265,26 @@
         .then(response => 
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un employé a été supprimé!");
-          localStorage.clear(); // Suppression des identifiants de l'employé
-          this.$router.push({ name: 'Signup' });
+          localStorage.clear(); // Suppression des identifiants de l'employé du LS pour close la session
+          this.$router.push({ name: 'Signup' }); // Redirection vers la page de signup
         })
         .catch(error => alert(error));
       },
+
+      // Valoriser isProfileUpdate à 'true' pour afficher le message correspondant
+      setIsProfileUpdate()
+      {
+        this.isProfileUpdate = true;
+      },
+      // Valoriser isProfileUpdate à 'false' pour cacher le message correspondant
+      unsetIsProfileUpdate()
+      {
+        this.isProfileUpdate = false;
+      },
+      // Appel de la fonction qui demande la mise à jour du profil de l'employé
       sendProfileUpdate()
       {
+        // Récupération des input du formulaire de changement de profil
         let formInputs = document.querySelectorAll("#validationForm input");
         // Création de l'objet JS de contact avec les informations nécessaires
         let updatedProfile = {
@@ -266,12 +292,13 @@
             team : CommonFunctions.formatInput(formInputs[1].value),
         };
 
+        // Ecoute du bouton radio de mise à jour de l'avatar
         let radioButton= document.getElementsByName('avatarChoice');
-        // for (let index = 0; index < radioButton.lenth; ++index)
         for (let valueRadioButton of radioButton)
         {
-          if (valueRadioButton.checked)
+          if (valueRadioButton.checked) // Si le bouton courant est cliqué
           {
+            // Vérification de sa valeur et valorisation de removeAvatar en conséquence
             updatedProfile.removeAvatar = (valueRadioButton.value === "no")?false:true;
           }
         }
@@ -280,30 +307,30 @@
         let options = {};
         if (formInputs[2].files.length !== 0)
         {
+          // Si l'avatar doit être changé, utilisation d'un formData
           const formData = new FormData();
           formData.append('job', updatedProfile.job);
           formData.append('team', updatedProfile.team);
           formData.append('picture', formInputs[2].files[0]);
-          options = 
-          {
-              method: 'put',
-              headers: {
-                // 'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
-              },
-              body: formData // Remplissage du body de la requête avec les informations nécessaires
+          // Création des options et utilisation du formData dans le body
+          options = {
+            method: 'put',
+            headers: {
+              'Authorization': 'Bearer ' + this.lsAuth
+            },
+            body: formData
           };
         }
         else
         {
-          options = 
-          {
-              method: 'put',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
-              },
-              body: JSON.stringify({employee : updatedProfile}) // Remplissage du body de la requête avec les informations nécessaires
+          // Création des options et utilisation du formData dans le body
+          options = {
+            method: 'put',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this.lsAuth
+            },
+            body: JSON.stringify({ ...updatedProfile })
           };
         }
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
@@ -322,23 +349,26 @@
         {
           if (response.filename === null)
           {
+            // Si aucune nouvelle photo de profil n'a été chargée, on garde l'avatar précédent
             updatedProfile.avatar = this.employee.avatar;
-            if (updatedProfile.removeAvatar)
+            if (updatedProfile.removeAvatar) // Si l'employé souhaite supprimer sa photo de profil courante
             {
               updatedProfile.avatar = null;
             }
           }
           else
           {
-            updatedProfile.avatar = response.filename;
+            updatedProfile.avatar = response.filename; // Le chemin du nouvel avatar est récupéré
           }
+
+          // Formattage du profil mis à jour et assignation à la data employee
           updatedProfile = this.formatEmployee(updatedProfile);
           this.employee.job = updatedProfile.job;
           this.employee.team = updatedProfile.team;
           this.employee.avatar = updatedProfile.avatar;
           
           if (response.updatedNumber != 1) throw new Error("plus d'un employé a été modifié!");
-          this.isProfileUpdateNeeded = false;
+          this.unsetIsProfileUpdate();
         })
         .catch(error => alert(error));
       }

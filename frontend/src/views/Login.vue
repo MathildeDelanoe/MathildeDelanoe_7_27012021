@@ -36,6 +36,7 @@
     data: function()
     {
       return {
+        // Champs du formulaire
         email: '',
         password: '',
       };
@@ -50,19 +51,22 @@
         default: ''
       }
     },
-    mounted(){
+    mounted() {
+      // Au montage de la page, on vérifie si un utilisateur est déjà connecté par lecture du local storage
       this.lsAuth = localStorage.getItem('auth');
       this.lsEmpId = localStorage.getItem('employeeId');
-      if (this.lsAuth !== null && this.lsEmpId !== null)
+      if (this.lsAuth !== null && this.lsEmpId !== null) // Si les clés existent dans le local storage
       {
-        if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0)
+        if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0) // Si elles ne sont pas vides
         {
-          this.$router.push({ name: 'Feed' });
+          this.$router.push({ name: 'Feed' }); // Redirection vers le fil d'actualité
           return;
         }
       }
+      // Vérification de l'existence des props
       if (this.emailFromSignup.length !== 0 && this.passwordFromSignup.length !== 0)
       {
+        // Si les props ne sont pas vides, on appelle la fonction de login
         this.loginToAccount(this.emailFromSignup, this.passwordFromSignup);
       }
     },
@@ -87,22 +91,26 @@
             body: JSON.stringify({email : email_in,
                                   password : password_in}) // Remplissage du body de la requête avec les informations nécessaires
         };
-        // Envoi de la requête via fetch pour s'enregistrer
+        // Envoi de la requête via fetch pour se connecter
         fetch('http://localhost:3000/api/employee/login', options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then(response =>
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
+          // Enregistrement dans le local storage du token et de l'id pour maintenir la connexion
           localStorage.setItem('auth', response.token);
           localStorage.setItem('employeeId', response.userId);
+          // Redirection vers la page feed
           this.$router.push({ name: 'Feed' });
         })
         .catch(error => alert(error))

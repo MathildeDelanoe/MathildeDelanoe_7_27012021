@@ -2,6 +2,7 @@
   <body class="feed">
     <Nav :isConnected="true" :fullName="userName" :avatar="avatar"/>
     <h1> Bienvenue {{ userName }} !</h1>
+    <!-- Représente la publication des posts -->
     <div id="post">
       <label for="newPost">Publication : </label>
       <div id="imagePreview">
@@ -15,35 +16,54 @@
         <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif" @change="this.showPreview()">
       </div>
     </div>
+    <!-- Représente les employées que l'on cherche -->
     <div id="searchPerson">
-      <p><font-awesome-icon :icon="['fas', 'search']"/>
+      <!-- <p><font-awesome-icon :icon="['fas', 'search']"/>
         <label for="search"></label>
         <input type="search" id="search" name="q" placeholder="Rechercher par Nom Prénom" aria-label="Recherche dans les posts" @change="reloadAllPosts">
         <button @click="printSpecificPosts()">Rechercher</button>
         <button @click="printSpecificPosts('mine')">Mes posts</button>
-      </p>
+      </p> -->
+      <p> Rechercher dans les posts </p>
+      <div id="testPost">
+        <div>
+          <font-awesome-icon :icon="['fas', 'search']"/>
+          <label for="searchLastName"></label>
+          <input type="search" id="searchLastName" name="q" placeholder="Nom" aria-label="Recherche dans les posts par Nom" @change="reloadAllPosts">
+          <label for="searchFirstName"></label>
+          <input type="search" id="searchFirstName" name="q" placeholder="Prénom" aria-label="Recherche dans les posts par Prénom" @change="reloadAllPosts"> 
+          <button @click="printSpecificPosts()" id="buttonSearch">Rechercher</button>
+        </div>
+        <button @click="printSpecificPosts('mine')">Mes posts</button>
+      </div>
     </div>
-    <div v-if="this.isFilteredPostOnGoing">
+    <!-- Nombre de posts trouvés et retour aux postes -->
+    <div id="FilteredPost" v-if="this.isFilteredPostOnGoing">
       <p>{{ this.feedPosts.length }} {{ (this.feedPosts.length > 1)?"posts ont été trouvés":"post a été trouvé" }}.</p>
-      <button @click="reloadAllPosts('button')">Retour aux posts</button>
+      <button @click="reloadAllPosts('button')" id="buttonReturnPost">Retour aux posts</button>
     </div>
+    <!-- Représente les publications postées -->
     <div id="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
       <div>
+        <!-- Les infos des personnes qui ont postés -->
         <div id="person_comments">
           <div>
             <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30" id="avatar"></avatar> <p> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
           </div>
           <p> {{ singlePost.formatedDate }} </p>
         </div>
+        <!-- Le contenu du post -->
         <div id="postContent">
           <img :src="singlePost.picture" alt="picture of a post" v-if="singlePost.picture !== null"/>
           <p>{{ singlePost.text }}</p>
         </div>
+        <!-- Représente les différentes icones du post -->
         <div id="icons">
           <p @click="likeMessage(singlePost.id, indexPost)"><font-awesome-icon :icon="['fas', 'thumbs-up']" :class="{'like':this.likedPost.includes(singlePost.id), 'noLike':!this.likedPost.includes(singlePost.id)}"/> {{ singlePost.nbLikes }} </p>
           <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
           <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singlePost.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
         </div>
+        <!-- Pour supprimer un post -->
         <div id="deletePostBox" v-if="mapDeletedMessage.has(singlePost.id) && mapDeletedMessage.get(singlePost.id)==true">
           <p>Voulez-vous vraiment supprimer votre post?</p>
           <div>
@@ -52,7 +72,9 @@
           </div>
         </div>
       </div>
+      <!-- Représente les commentaires -->
       <div id="comments">
+        <!-- Représente les commentaires dejà postés -->
         <div id ="fullComment" v-for="(singleComment, indexComment) in singlePost.comments" :key="singleComment">
           <div>
             <avatar :fullname="singleComment.first_name + ' ' + singleComment.last_name" :image="singleComment.avatar" :size="30" id="avatar"></avatar>
@@ -64,6 +86,7 @@
             </div>
             <p v-if="singleComment.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singleComment.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
           </div>
+          <!-- Pour supprimer un commentaire déjà postés-->
           <div id="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
             <p>Voulez-vous vraiment supprimer votre commentaire?</p>
             <div>
@@ -72,6 +95,7 @@
             </div>
           </div>
         </div>
+        <!-- Pour poster un commentaire -->
         <div>
           <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
@@ -508,15 +532,17 @@
         let responseStatus;
         let responseOk;
         // Récupération de l'input html contenant le champ de recherche
-        let searchedEmployee = document.getElementById("search").value;
-        if (searchedEmployee === '' && option !== 'mine')
+        let lastName = document.getElementById("searchLastName").value;
+        let firstName = document.getElementById("searchFirstName").value;
+        if (lastName === '' && firstName === '' && option !== 'mine')
         {
           alert('Le champ est vide');
           return;
         }
         if (option === 'mine')
         {
-          searchedEmployee = this.userName.split(' ')[1] + ' ' + this.userName.split(' ')[0];
+          lastName = this.userName.split(' ')[1];
+          firstName = this.userName.split(' ')[0];
         }
         // Initialisation des options de la méthode fetch
         let options = 
@@ -528,7 +554,7 @@
             },
         };
         // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
-        fetch('http://localhost:3000/api/post/search/' + searchedEmployee, options)
+        fetch('http://localhost:3000/api/post/search/' + lastName + '/' + firstName, options)
         .then(response =>
         {
           responseStatus = response.status;
@@ -591,8 +617,9 @@
       },
       reloadAllPosts(type = '')
       {
-        let searchedEmployee = document.getElementById("search").value;
-        if (type === 'button' || searchedEmployee === '')
+        let lastName = document.getElementById("searchLastName").value;
+        let firstName = document.getElementById("searchFirstName").value;
+        if (type === 'button' || (lastName === '' && firstName === ''))
         {
           this.feedPosts.length = 0;
           for (let savedPost of this.historyFeedPosts)
@@ -601,7 +628,8 @@
           }
           this.historyFeedPosts.length = 0;
           this.isFilteredPostOnGoing = false;
-          document.getElementById("search").value = '';
+          document.getElementById("searchLastName").value = '';
+          document.getElementById("searchFirstName").value = '';
         }
       },
     }
@@ -675,11 +703,21 @@ h1 {
 }
 
 #searchPerson {
-  p {
-    display:flex;
+  p:first-child {
+    width:70%;
+    font-weight:bold;
   }
+  #testPost {
+    display:flex;
+    flex-direction: column;
+    margin-bottom:30px;
+    
+    div {
+      display: flex;
+      margin-bottom:10px;
+    }
+  } 
   .fa-search {
-    // background-color:rgb(217,217,217);
     background-color:rgb(48,66,96);
     color:white;
     border:1px solid grey;
@@ -688,12 +726,22 @@ h1 {
     padding:6px 10px 6px 10px;
     align-self:center;
   }
+  #buttonSearch {
+    border-radius:0px 5px 5px 0px;
+  }
+  button:last-child {
+    border-radius:5px;
+    width:100px;
+  }
 }
 
-#search {
-  width:300px;
-  padding-top:6px;
-  padding-bottom:6px;
+#searchFirstName, #searchLastName {
+    width:100px;
+  }
+
+#buttonReturnPost {
+  border-radius:5px;
+  margin-bottom:20px;
 }
 
 #posted {
@@ -874,16 +922,48 @@ button {
   display:none;
 }
 
-  @media screen and (min-width:1500px) {
+@media screen and (min-width:736px)  {
 
-    #post, #posted {
-      width:40%;
-    }
+  #searchPerson {
+    width:70%;
+    margin:auto;
+}
+  
+    #searchFirstName, #searchLastName {
+    width:250px;
+  }
+}
 
-    body {
-       background-color:rgb(238,241,247);
-    }
+@media screen and (min-width:1500px) {
+
+ body {
+      background-color:rgb(238,241,247);
   }
 
+  #post, #posted {
+    width:40%;
+  }
+
+  #searchPerson {
+    // border:1px solid red;
+    width:40%;
+    margin:auto;
+
+    #testPost {
+      flex-direction: row;
+      &>button {
+        height:30px;
+      }
+    }
+    #buttonSearch {
+      margin-right:30px;
+    }
+  }
+  #FilteredPost {
+    width:40%;
+    margin:auto;
+}
+
+}
 
 </style>

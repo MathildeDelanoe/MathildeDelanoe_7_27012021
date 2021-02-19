@@ -90,6 +90,8 @@ exports.signup = (req, res, next) => {
         {
             // Chiffrement de l'adresse email
             let encryptedEmail = cryptoJs.AES.encrypt(formatDatabaseInput(email), process.env.EMAIL_KEY).toString();
+
+            // Connexion à la base de données
             let connection = mysql.createConnection({
                 host:process.env.DB_HOST,
                 user:process.env.DB_USER,
@@ -98,8 +100,11 @@ exports.signup = (req, res, next) => {
             });
             connection.connect(error => {
                 if (error) throw error;
-                connection.query("SELECT e_mail FROM employees;", (error, result) => { //result est un tableau contenant toutes les lignes retournées
+                // Récupération des emails de tous les employés présents
+                connection.query("SELECT e_mail FROM employees;", (error, result) => {
                     if (error) throw new Error(error);
+                    // result est un tableau qui contient les emails. Exemple : result[0].e_mail
+                    // Parcours du tableau d'email pour vérifier que l'email n'est pas déjà présent en BDD
                     for (let employee of result)
                     {
                         // Décrytage de l'email présent dans la base de données
@@ -112,11 +117,12 @@ exports.signup = (req, res, next) => {
                             return res.status(403).json({ errorMessage: 'Email déjà utilisé'});
                         }
                     }
+                    // Si on arrive ici, c'est que l'email n'est pas présent en BDD, c'est bien une nouvelle inscription
                     // Fonction pour crypter le mot de passe via hash
                     bcrypt.hash(password, 10) // 10 itérations
                     .then(hash =>
                     {
-                        // Construction de la requête SQL
+                        // Insertion du nouvel employé avec son prénom, nom, email crypté et mot de passe hashé
                         let sqlQuery = "INSERT INTO employees (first_name, last_name, e_mail, password, is_admin) VALUES ('";
                         sqlQuery += formatDatabaseInput(req.body.firstName);
                         sqlQuery += "', '";
@@ -129,8 +135,8 @@ exports.signup = (req, res, next) => {
                         // Traitement de la requête SQL
                         connection.query(sqlQuery, (error) => {
                             if (error) throw new Error(error);
-                            res.status(201).json({ message: 'Employé créé !'});
                             connection.end();
+                            return res.status(201).json({ message: 'Employé créé !'});
                         });
                     });
                 });
@@ -156,25 +162,28 @@ exports.login = (req, res, next) => {
     });
     connection.connect(error => {
         if (error) throw error;
-        connection.query("SELECT e_mail FROM employees;", (error, result) => { //result est un tableau contenant toutes les lignes retournées
+        // Selection de l'email de tous les employés
+        connection.query("SELECT e_mail FROM employees;", (error, result) => {
             if (error) throw new Error(error);
             for (let employee of result)
             {
                 // Décrytage de l'email présent dans la base de données
                 var bytes  = cryptoJs.AES.decrypt(employee.e_mail, process.env.EMAIL_KEY);
                 var originalEmail = bytes.toString(cryptoJs.enc.Utf8);
-                // Comparaison des emails
+                // Comparaison des emails non cryptés
                 if (originalEmail === formatDatabaseInput(req.body.email))
                 {
                     currentEmail = employee.e_mail; // Stockage de l'email crypté
                     break; // Si l'email correspond on sort de la boucle for
                 }
             }
+            // L'employé, via son email, a bien été trouvé
+            // Sélectionner son id et son mot de passe
             connection.query("SELECT id, password FROM employees WHERE e_mail=?;", currentEmail, (error, result) => {
                 if (error) throw new Error(error);
                 if (result.length === 1)
                 {
-                    // L'utilisateur a été trouvé. Il faut maintenant procéder à la comparaison des mots de passe
+                    // L'employé a été trouvé. Il faut maintenant procéder à la comparaison des mots de passe
                     bcrypt.compare(req.body.password, result[0].password)
                     .then(valid =>
                     {
@@ -184,14 +193,13 @@ exports.login = (req, res, next) => {
                         */
                         if (!valid)
                         {
-                            // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
+                            // Le mot de passe fourni diffère de celui enregistré dans la BDD => envoi d'une réponse avec erreur
                             connection.end();
                             return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                         }
                         /* Le mot de passe est correct.
                             Envoi d'un objet json qui contient l'identifiant de l'utilisateur et un token d'authentification
                         */
-                       
                         connection.end();
                         return res.status(200).json({
                             userId: result[0].id,
@@ -202,7 +210,7 @@ exports.login = (req, res, next) => {
                             )
                         });
                     })
-                    .catch(() => res.status(500).json({ errorMessage: 'brypt erreur' }));
+                    .catch(() => res.status(500).json({ errorMessage: 'bcrypt erreur' }));
                 }
                 else if (result.length == 0)
                 {
@@ -390,7 +398,7 @@ exports.updatePassword = (req, res, next) => {
                 if (!valid)
                 {
                     // connection.end();
-                    // Le mot de passe fourni diffère de celui enregistré dans MongoDB => envoi d'une réponse avec erreur
+                    // Le mot de passe fourni diffère de celui enregistré dans la BDD => envoi d'une réponse avec erreur
                     connection.end();
                     return res.status(401).json({ errorMessage: 'Mot de passe incorrect !' });
                 }

@@ -236,21 +236,18 @@ exports.getAllPostsFromEmployee = (req, res, next) => {
     // Connection à la base de données
     connection.connect(error => {
         if (error) throw error;
-        let fullNameSplited = req.params.fullName.split(' ');
-        let firstPart = fullNameSplited[0];
-        let secondPart = fullNameSplited[1];
         connection.query("SELECT posts.id\
                           FROM posts \
                           LEFT JOIN employees \
                           ON posts.employee_id=employees.id \
-                          WHERE posts.post_id IS NULL AND employees.id IN (SELECT id FROM employees WHERE (first_name=? AND last_name=?) OR (first_name=? AND last_name=?))\
+                          WHERE posts.post_id IS NULL AND employees.id IN (SELECT id FROM employees WHERE first_name=? AND last_name=?)\
                           ORDER BY date DESC;",
-                          [firstPart, secondPart, secondPart, firstPart], (error, result) => {
+                          [req.params.firstName, req.params.lastName], (error, result) => {
             if (error) throw new Error(error);
             connection.end();
             if (result.length === 0)
             {
-                return res.status(403).json({ errorMessage: 'Aucun employé connu sous Nom Prénom : ' + lastName + ' ' + firstName});
+                return res.status(403).json({ errorMessage: 'Aucun employé connu sous Nom Prénom : ' + req.params.lastName + ' ' + req.params.firstName});
             }
             return res.status(201).json({ postIds: result });
         });      

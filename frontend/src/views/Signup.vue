@@ -56,6 +56,7 @@
     {
       return {
         formErrors: [], // Tableau contenant les messages d'erreur de remplissage du formulaire
+        // Champs du formulaire
         lastName: '',
         firstName: '',
         email: '',
@@ -63,14 +64,15 @@
         confirmationPassword: ''
       };
     },
-    mounted(){
+    mounted() {
+      // Au montage de la page, on vérifie si un utilisateur est déjà connecté par lecture du local storage
       this.lsAuth = localStorage.getItem('auth');
       this.lsEmpId = localStorage.getItem('employeeId');
-      if (this.lsAuth !== null && this.lsEmpId !== null)
+      if (this.lsAuth !== null && this.lsEmpId !== null) // Si les clés existent dans le local storage
       {
-        if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0)
+        if (this.lsAuth.length !== 0 && this.lsEmpId.length !== 0) // Si elles ne sont pas vides
         {
-          this.$router.push({ name: 'Feed' });
+          this.$router.push({ name: 'Feed' }); // Redirection vers le fil d'actualité
           return;
         }
       }
@@ -157,20 +159,23 @@
                                   email : this.email,
                                   password : this.password}) // Remplissage du body de la requête avec les informations nécessaires
         };
-        // Envoi de la requête via fetch pour s'enregistrer
+        // Envoi de la requête d'inscription via fetch pour s'enregistrer
         fetch('http://localhost:3000/api/employee/signup', options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then((response) =>
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
+          // Redirection vers la page login en utilisant les props
           this.$router.push({ name: 'Login', params: {emailFromSignup: this.email, passwordFromSignup: this.password} });
         })
         .catch(error => alert(error))

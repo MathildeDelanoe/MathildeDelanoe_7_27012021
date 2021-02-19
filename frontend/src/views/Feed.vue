@@ -18,10 +18,14 @@
     <div id="searchPerson">
       <p><font-awesome-icon :icon="['fas', 'search']"/>
         <label for="search"></label>
-        <input type="search" id="search" name="q" placeholder="Rechercher un(e) collègue (Nom Prénom)" aria-label="Recherche dans les posts" @change="reloadAllPosts"> <!-- aria-label? name="q" ?-->
+        <input type="search" id="search" name="q" placeholder="Rechercher par Nom Prénom" aria-label="Recherche dans les posts" @change="reloadAllPosts">
         <button @click="printSpecificPosts()">Rechercher</button>
         <button @click="printSpecificPosts('mine')">Mes posts</button>
       </p>
+    </div>
+    <div v-if="this.isFilteredPostOnGoing">
+      <p>{{ this.feedPosts.length }} {{ (this.feedPosts.length > 1)?"posts ont été trouvés":"post a été trouvé" }}.</p>
+      <button @click="reloadAllPosts('button')">Retour aux posts</button>
     </div>
     <div id="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
       <div>
@@ -111,6 +115,7 @@
         feedPosts: [],
         searchFeedPosts: [],
         historyFeedPosts: [],
+        isFilteredPostOnGoing: false,
         avatarPosted: '',
         datePosted: '',
         mapDeletedMessage : new Map(),
@@ -537,34 +542,57 @@
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
 
-          for (let post of this.feedPosts)
+          if (!this.isFilteredPostOnGoing)
           {
-            this.historyFeedPosts.push(post);
-          }
-          
-          for (let postId of response.postIds)
-          {
+            // S'il n'y a aucun filtre sur les posts appliqués, on stocke les posts actuels
             for (let post of this.feedPosts)
             {
-              if (post.id === postId.id)
+              this.historyFeedPosts.push(post);
+            }
+            // On parcourt la liste des posts actuels
+            for (let postId of response.postIds)
+            {
+              for (let post of this.feedPosts)
               {
-                this.searchFeedPosts.push(post);
+                if (post.id === postId.id)
+                {
+                  this.searchFeedPosts.push(post);
+                }
               }
             }
           }
+          else
+          {
+            // Si un filtre est déjà présent, nous utilisons le tableau de posts sauvegardés
+            for (let postId of response.postIds)
+            {
+              for (let post of this.historyFeedPosts)
+              {
+                if (post.id === postId.id)
+                {
+                  this.searchFeedPosts.push(post);
+                }
+              }
+            }
+          }
+
           this.feedPosts.length = 0;
           for (let searchPost of this.searchFeedPosts)
           {
             this.feedPosts.push(searchPost);
           }
           this.searchFeedPosts.length = 0;
+          if (!this.isFilteredPostOnGoing)
+          {
+            this.isFilteredPostOnGoing = true;
+          }
         })
         .catch(error => alert(error));
       },
-      reloadAllPosts()
+      reloadAllPosts(type = '')
       {
         let searchedEmployee = document.getElementById("search").value;
-        if (searchedEmployee === '')
+        if (type === 'button' || searchedEmployee === '')
         {
           this.feedPosts.length = 0;
           for (let savedPost of this.historyFeedPosts)
@@ -572,8 +600,10 @@
             this.feedPosts.push(savedPost);
           }
           this.historyFeedPosts.length = 0;
+          this.isFilteredPostOnGoing = false;
+          document.getElementById("search").value = '';
         }
-      }
+      },
     }
   }
 </script>

@@ -168,14 +168,31 @@
       this.getPosts();
       this.getEmployeeInfo();
       
-      this.socket.on('UPDATEPOST', () =>{
-        console.log('try to call the socket');
-        this.getPosts();
+      this.socket.on('likeSocketBroadcast', likeMessage =>{
+        for (let post of this.feedPosts)
+        {
+          if (post.id === likeMessage.idPost)
+          {
+            if (likeMessage.like)
+            {
+              post.nbLikes++;
+            }
+            else
+            {
+              post.nbLikes--;
+            }
+            break;
+          }
+        }
       });
     },
     created()
     {
-      this.socket = io('localhost:3000');
+      this.socket = io('http://localhost:3000', { autoConnect: false });
+      this.socket.onAny((event, ...args) => {
+        console.log(event, args);
+      });
+      this.socket.connect(); // Connect to the socket
     },
     methods:
     {
@@ -441,8 +458,7 @@
             this.feedPosts[indexPost].nbLikes--;
           }
           document.getElementById("newPost").value = '';
-          this.socket.emit('publishPost');
-          this.getPosts();
+          this.socket.emit('likeSocketEmit', {like: response.like, idPost: postId});
         })
         .catch(error => alert(error))
       },

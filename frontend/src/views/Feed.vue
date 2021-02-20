@@ -18,12 +18,6 @@
     </div>
     <!-- Représente les employées que l'on cherche -->
     <div id="searchPerson">
-      <!-- <p><font-awesome-icon :icon="['fas', 'search']"/>
-        <label for="search"></label>
-        <input type="search" id="search" name="q" placeholder="Rechercher par Nom Prénom" aria-label="Recherche dans les posts" @change="reloadAllPosts">
-        <button @click="printSpecificPosts()">Rechercher</button>
-        <button @click="printSpecificPosts('mine')">Mes posts</button>
-      </p> -->
       <p> Rechercher dans les posts </p>
       <div id="testPost">
         <div>
@@ -790,6 +784,7 @@ h1 {
 }
 
 #searchPerson {
+  // border:1px solid purple;
   p:first-child {
     width:70%;
     font-weight:bold;
@@ -798,10 +793,16 @@ h1 {
     display:flex;
     flex-direction: column;
     margin-bottom:30px;
+    // border:1px solid green;
+    // flex-wrap: wrap;
     
     div {
+      width:80%;
       display: flex;
       margin-bottom:10px;
+    }
+    &>button{
+      // width:15%;
     }
   } 
   .fa-search {
@@ -823,7 +824,8 @@ h1 {
 }
 
 #searchFirstName, #searchLastName {
-    width:100px;
+    width:40%;
+    // border:1px solid
   }
 
 #buttonReturnPost {
@@ -1009,17 +1011,16 @@ button {
   display:none;
 }
 
-@media screen and (min-width:736px)  {
+@media screen and (min-width:736px) {
 
   #searchPerson {
-    width:70%;
+    width:90%;
     margin:auto;
+    // border:1px solid red;
 }
-  
-    #searchFirstName, #searchLastName {
-    width:250px;
-  }
 }
+
+
 
 @media screen and (min-width:1500px) {
 
@@ -1052,5 +1053,6 @@ button {
 }
 
 }
+
 
 </style>

@@ -80,6 +80,7 @@
   import Nav from '../components/Nav.vue'
   import Avatar  from 'vue-avatar-component'
   import {CommonFunctions} from '../assets/CommonFunctions.js'
+  import io from 'socket.io-client'
 
   export default {
     name: 'Profile',
@@ -100,7 +101,16 @@
         lsEmpId: ''
       };
     },
-    mounted(){
+    created()
+    {
+      this.socket = io('http://localhost:3000', { autoConnect: false });
+      this.socket.onAny((event, ...args) => {
+        console.log(event, args);
+      });
+      this.socket.connect(); // Connect to the socket
+    },
+    mounted()
+    {
       // Au montage de la page, on vérifie si un utilisateur est déjà connecté par lecture du local storage
       this.lsAuth = localStorage.getItem('auth');
       this.lsEmpId = localStorage.getItem('employeeId');
@@ -145,6 +155,10 @@
         this.avatar = this.employee.avatar;
       })
       .catch(error => alert(error));
+    },
+    unmouted()
+    {
+      this.socket.close(); // Fermeture de la socket
     },
     methods: 
     {
@@ -366,6 +380,10 @@
           this.employee.job = updatedProfile.job;
           this.employee.team = updatedProfile.team;
           this.employee.avatar = updatedProfile.avatar;
+          if (formInputs[2].files.length !== 0 || updatedProfile.removeAvatar) // Si changement d'avatar, notification à la socket
+          {
+            this.socket.emit('newAvatarSocketEmit', { employeeId: this.lsEmpId, avatar: this.employee.avatar });
+          }
           
           if (response.updatedNumber != 1) throw new Error("plus d'un employé a été modifié!");
           this.unsetIsProfileUpdate();

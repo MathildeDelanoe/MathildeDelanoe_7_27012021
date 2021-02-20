@@ -145,6 +145,17 @@
         socket: null
       };
     },
+    created()
+    {
+      if (this.socket === null)
+      {
+        this.socket = io('http://localhost:3000', { autoConnect: false });
+        this.socket.onAny((event, ...args) => {
+          console.log(event, args);
+        });
+        this.socket.connect(); // Connect to the socket
+      }
+    },
     mounted(){
       // Vérification que l'employé est connecté (présence dans le local storage de ces informations)
       this.lsAuth = localStorage.getItem('auth');
@@ -231,14 +242,30 @@
           }
         }
       });
-    },
-    created()
-    {
-      this.socket = io('http://localhost:3000', { autoConnect: false });
-      this.socket.onAny((event, ...args) => {
-        console.log(event, args);
+      // Récupération, via socket, d'un changement d'avatar d'un autre employé
+      this.socket.on('newAvatarSocketBroadcast', data =>{
+        if (data.employeeId !== this.lsEmpId)
+        {
+          for (let post of this.feedPosts)
+          {
+            if (post.employee_id == data.employeeId)
+            {
+              post.avatar = data.avatar;
+            }
+            for (let comment of post.comments)
+            {
+              if (comment.employee_id == data.employeeId)
+              {
+                comment.avatar = data.avatar;
+              }
+            }
+          }
+        }
       });
-      this.socket.connect(); // Connect to the socket
+    },
+    unmouted()
+    {
+      this.socket.close(); // Fermeture de la socket
     },
     methods:
     {
@@ -1016,11 +1043,8 @@ button {
   #searchPerson {
     width:90%;
     margin:auto;
-    // border:1px solid red;
 }
 }
-
-
 
 @media screen and (min-width:1500px) {
 
@@ -1033,7 +1057,6 @@ button {
   }
 
   #searchPerson {
-    // border:1px solid red;
     width:40%;
     margin:auto;
 

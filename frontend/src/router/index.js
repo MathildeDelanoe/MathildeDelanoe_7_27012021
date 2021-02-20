@@ -21,14 +21,12 @@ const routes = [
   {
     path: '/profile',
     name: 'Profile',
-    component: Profile,
-    props: true
+    component: Profile
   },
   {
     path: '/feed',
     name: 'Feed',
-    component: Feed,
-    props: true
+    component: Feed
   },
 ]
 

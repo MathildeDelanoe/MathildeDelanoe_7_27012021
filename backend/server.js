@@ -82,6 +82,12 @@ io.sockets.on('connection', (socket) => {
   socket.on('newCommentSocketEmit', newComment => {
     socket.broadcast.emit('newCommentSocketBroadcast', { ...newComment }); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
   });
+  socket.on('newAvatarSocketEmit', data => {
+    socket.broadcast.emit('newAvatarSocketBroadcast', { ...data }); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
+  });
+  socket.on('disconnect', () => {
+    console.log('someone disconnected')
+  });
 });
 
 // Le serveur écoute le port défini plus haut

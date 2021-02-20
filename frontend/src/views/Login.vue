@@ -41,12 +41,15 @@
         password: '',
       };
     },
-    props: {
-      emailFromSignup: {
+    props:
+    {
+      emailFromSignup:
+      {
         type: String,
         default: ''
       },
-      passwordFromSignup: {
+      passwordFromSignup:
+      {
         type: String,
         default: ''
       }

@@ -2,7 +2,7 @@
   <body class="feed">
     <Nav :isConnected="true" :fullName="userName" :avatar="avatar"/>
     <h1> Bienvenue {{ userName }} !</h1>
-    <!-- Représente la publication des posts -->
+    <!-- Représente le bloc de rédaction d'un post -->
     <div id="post">
       <label for="newPost">Publication : </label>
       <div id="imagePreview">
@@ -16,7 +16,7 @@
         <input type="file" id="file" class="input-file" accept=".jpg,.jpeg,.png,.gif" @change="this.showPreview()">
       </div>
     </div>
-    <!-- Représente les employées que l'on cherche -->
+    <!-- Représente la barre de recherche pour filtrer les posts par employé -->
     <div id="searchPerson">
       <p> Rechercher dans les posts </p>
       <div id="testPost">
@@ -37,28 +37,28 @@
       <button @click="reloadAllPosts('button')" id="buttonReturnPost">Retour aux posts</button>
     </div>
     <!-- Représente les publications postées -->
-    <div id="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
+    <div class="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
       <div>
         <!-- Les infos des personnes qui ont postés -->
-        <div id="person_comments">
+        <div class="person_comments">
           <div>
             <avatar :fullname="singlePost.first_name + ' ' + singlePost.last_name" :image="singlePost.avatar" :size="30" id="avatar"></avatar> <p> {{ singlePost.first_name }} {{ singlePost.last_name }} </p>
           </div>
           <p> {{ singlePost.formatedDate }} </p>
         </div>
         <!-- Le contenu du post -->
-        <div id="postContent">
+        <div class="postContent">
           <img :src="singlePost.picture" alt="picture of a post" v-if="singlePost.picture !== null"/>
           <p>{{ singlePost.text }}</p>
         </div>
         <!-- Représente les différentes icones du post -->
-        <div id="icons">
+        <div class="icons">
           <p @click="likeMessage(singlePost.id, indexPost)"><font-awesome-icon :icon="['fas', 'thumbs-up']" :class="{'like':this.likedPost.includes(singlePost.id), 'noLike':!this.likedPost.includes(singlePost.id)}"/> {{ singlePost.nbLikes }} </p>
           <p><font-awesome-icon :icon="['fas', 'comment']"/> {{ singlePost.comments.length }} commentaire{{ (singlePost.comments.length > 1)?'s':''}}</p>
           <p v-if="singlePost.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singlePost.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
         </div>
         <!-- Pour supprimer un post -->
-        <div id="deletePostBox" v-if="mapDeletedMessage.has(singlePost.id) && mapDeletedMessage.get(singlePost.id)==true">
+        <div class="deletePostBox" v-if="mapDeletedMessage.has(singlePost.id) && mapDeletedMessage.get(singlePost.id)==true">
           <p>Voulez-vous vraiment supprimer votre post?</p>
           <div>
             <button @click="deleteMessage(singlePost.id, indexPost, 'post')">Oui</button>
@@ -67,13 +67,13 @@
         </div>
       </div>
       <!-- Représente les commentaires -->
-      <div id="comments">
+      <div class="comments">
         <!-- Représente les commentaires dejà postés -->
-        <div id ="fullComment" v-for="(singleComment, indexComment) in singlePost.comments" :key="singleComment">
+        <div class ="fullComment" v-for="(singleComment, indexComment) in singlePost.comments" :key="singleComment">
           <div>
             <avatar :fullname="singleComment.first_name + ' ' + singleComment.last_name" :image="singleComment.avatar" :size="30" id="avatar"></avatar>
-            <div id="commentsText">
-              <div id="commentsHead">
+            <div class="commentsText">
+              <div class="commentsHead">
                 <p>{{ singleComment.first_name + ' ' + singleComment.last_name }} {{ singleComment.formatedDate.toLowerCase() }}</p>
               </div>
               <p>{{ singleComment.text }}</p>
@@ -81,7 +81,7 @@
             <p v-if="singleComment.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singleComment.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
           </div>
           <!-- Pour supprimer un commentaire déjà postés-->
-          <div id="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
+          <div class="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
             <p>Voulez-vous vraiment supprimer votre commentaire?</p>
             <div>
               <button @click="deleteMessage(singleComment.id, indexPost, 'comment', indexComment)">Oui</button>
@@ -94,7 +94,7 @@
           <form class="formComments" action="">
             <avatar :fullname="userName" :image="avatar" :size="30"></avatar>
             <label for="sendComment" class="labelComment">Votre commentaire</label>
-            <input id="sendComment" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id, indexPost)">Envoyer</button>
+            <input id="sendComment" class="inputComment" placeholder="Votre commentaire" /><button @click="this.publishComment(singlePost.id, indexPost)">Envoyer</button>
           </form>
         </div>
       </div>
@@ -147,6 +147,7 @@
     },
     created()
     {
+      // A la création de l'instance, si ce n'est pas déjà fait, on crée une socket pour gérer la mise à jour automatique de changements
       if (this.socket === null)
       {
         this.socket = io('http://localhost:3000', { autoConnect: false });
@@ -157,59 +158,69 @@
       }
     },
     mounted(){
-      // Vérification que l'employé est connecté (présence dans le local storage de ces informations)
+      // Au montage de la page, on vérifie si un utilisateur est déjà connecté par lecture du local storage
       this.lsAuth = localStorage.getItem('auth');
       this.lsEmpId = localStorage.getItem('employeeId');
-      if (this.lsAuth === null || this.lsEmpId === null)
+      if (this.lsAuth === null || this.lsEmpId === null) // Si l'une des clés n'existe pas dans le local storage
       {
-        this.$router.push({ name: 'Login' });
+        this.$router.push({ name: 'Login' }); // Redirection vers la page de connexion
         return;
       }
-      if (this.lsAuth.length === 0 || this.lsEmpId.length === 0)
+      if (this.lsAuth.length === 0 || this.lsEmpId.length === 0) // Si l'une des clés est vide
       {
-        this.$router.push({ name: 'Login' });
+        this.$router.push({ name: 'Login' }); // Redirection vers la page de connexion
         return;
       }
+
+      // Au montage de cette page, on souhaite obtenir les posts et commentaires ainsi que les infos de l'employé
       this.getPosts();
       this.getEmployeeInfo();
       
-      this.socket.on('likeSocketBroadcast', likeMessage =>{
-        for (let post of this.feedPosts)
+      // Réception de la socket de changement de like
+      this.socket.on('likeSocketBroadcast', likeMessage => {
+        for (let post of this.feedPosts) // Parcours de tous les posts
         {
-          if (post.id === likeMessage.idPost)
+          if (post.id === likeMessage.idPost) // Recherche du post dont le like est modifié
           {
+            // Le post à modifier est trouvé. Vérification de l'action à faire
             if (likeMessage.like)
             {
+              // Augmentation du nombre de likes pour le post courant
               post.nbLikes++;
             }
             else
             {
+              // Diminution du nombre de likes pour le post courant
               post.nbLikes--;
             }
             break;
           }
         }
       });
-      this.socket.on('deleteSocketBroadcast', deleteMessage =>{
+      // Réception de la socket de suppression d'un commentaire/post
+      this.socket.on('deleteSocketBroadcast', deleteMessage => {
         let postIndex = -1;
         let commentIndex = 0;
         let found = false;
-        while (found !== true)
+        while (found !== true) // Lancement de la recherche du post/commentaire à supprimer
         {
           ++postIndex;
           if (this.feedPosts[postIndex].id === deleteMessage.idMessage)
           {
+            // Le post à supprimer est le post courant
             found = true;
           }
           else
           {
+            // Le message à supprimer n'est pas le post courant, recherche dans les commentaires du post courant si nécessaire
             if (deleteMessage.isComment)
             {
               commentIndex = 0;
-              for (let comment of this.feedPosts[postIndex].comments)
+              for (let comment of this.feedPosts[postIndex].comments) // Parcours de tous les commentaires du post courant
               {
                 if (comment.id === deleteMessage.idMessage)
                 {
+                  // Commentaire à supprimer trouvé.
                   found = true;
                   break;
                 }
@@ -218,44 +229,51 @@
             }
           }
         }
-        if (found)
+        if (found) // Si l'élément est trouvé
         {
+          // Suppression du commentaire
           if (deleteMessage.isComment)
           {
             this.feedPosts[postIndex].comments.splice(commentIndex, 1);
           }
-          else
+          else // Suppression du post
           {
             this.feedPosts.splice(postIndex, 1);
           }
         }
       });
-      this.socket.on('newPostSocketBroadcast', newPost =>{
-        this.feedPosts.unshift(newPost);
+      // Réception de la socket de nouveau post
+      this.socket.on('newPostSocketBroadcast', newPost => {
+        this.feedPosts.unshift(newPost); // Ajout du post au début du tableau de post
       });
-      this.socket.on('newCommentSocketBroadcast', newComment =>{
-        for (let post of this.feedPosts)
+      // Réception de la socket de nouveau commentaire
+      this.socket.on('newCommentSocketBroadcast', newComment => {
+        for (let post of this.feedPosts) // Parcours de tous les posts
         {
           if (post.id === newComment.postId)
           {
+            // Ajoute du commentaire à la fin du tableau
             post.comments.push(newComment.comment);
           }
         }
       });
       // Récupération, via socket, d'un changement d'avatar d'un autre employé
-      this.socket.on('newAvatarSocketBroadcast', data =>{
+      this.socket.on('newAvatarSocketBroadcast', data => {
         if (data.employeeId !== this.lsEmpId)
         {
-          for (let post of this.feedPosts)
+          // Cette socket est envoyée même à l'employé qui change son avatar. Donc on filtre cette procédure dans ce cas
+          for (let post of this.feedPosts) // Parcours des posts
           {
             if (post.employee_id == data.employeeId)
             {
+              // Si l'employé propriétaire du post a changé son avatar
               post.avatar = data.avatar;
             }
-            for (let comment of post.comments)
+            for (let comment of post.comments) // Parcours des commentaires
             {
               if (comment.employee_id == data.employeeId)
               {
+                // Si l'employé propriétaire du commentaire a changé son avatar
                 comment.avatar = data.avatar;
               }
             }
@@ -263,12 +281,13 @@
         }
       });
     },
-    unmouted()
+    beforeUnmount()
     {
       this.socket.close(); // Fermeture de la socket
     },
     methods:
     {
+      // Cette fonction sert à afficher une prévisualisation de l'image téléchargée dans le post
       showPreview()
       {
         // Récupération de la div html contenant la prévisualisation
@@ -280,11 +299,13 @@
 
         let postPicture = document.getElementById("file"); // Récupération de l'input de type file
         let image = document.createElement('img'); // Création d'une image
-        image.src = window.URL.createObjectURL(postPicture.files[0]);
-        picturePreview.appendChild(image);
+        image.src = window.URL.createObjectURL(postPicture.files[0]); // Attribution de l'image sélectionnée
+        picturePreview.appendChild(image); // L'image est intégrée à la div html
       },
+      // Cette fonction asyncrhone permet de récupérer tous les commentaires présents dans la base de données
       async fetchComments(post)
       {
+        // Initialisation des options de la méthode fetch
         let options = 
         {
             method: 'get',
@@ -293,17 +314,21 @@
               'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
             },
         };
-        // Envoi de la requête via fetch pour récupérer tous les posts
+        // Envoi de la requête via fetch pour récupérer tous les commentaires du post courant
         let jsonResponse = await fetch('http://localhost:3000/api/post/comments/' + post.id, options);
         let commentsTable = await jsonResponse.json();
+        // Tous les commentaires sont récupérés et on les ajoute au post courant
         post = {...post, comments: commentsTable.comments};
+        // Formattage de l'avatar de l'employé ayant écrit le post provenant de la BDD
         post.avatar = (post.avatar === null)?"": post.avatar;
-        for (let comment of post.comments)
+        for (let comment of post.comments) // Parcours des commentaires du post courant
         {
+          // Formattage de l'avatar de l'employé ayant écrit le commentaire courant provenant de la BDD
           comment.avatar = (comment.avatar === null)?"": comment.avatar;
         }
         return post;
       },
+      // Cette fonction permet de récupérer tous les posts présents dans la base de données
       getPosts(){
         this.feedPosts.length = 0; // Nécessité de vider le tableau de posts
         // Initialisation des options de la méthode fetch
@@ -330,16 +355,18 @@
         })
         .then(async response => 
         {
-          for (let post of response.posts)
+          for (let post of response.posts) // Parcours des posts de la BDD
           {
+            // Pour chaque post, récupération des commentaires et attente de la réception de chacun avant de passer au post suivant
             await this.fetchComments(post)
             .then(post => {
-              this.feedPosts.push(post);
+              this.feedPosts.push(post); // Ajoute du post au tableau de posts
             });
           }
         })
         .catch(error => alert(error));
       },
+      // Cette fonction permet de récupérer les informations de l'employé
       getEmployeeInfo(){
         // Initialisation des options de la méthode fetch
         let options = 
@@ -350,7 +377,7 @@
               'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
             },
         };
-        // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
+        // Envoi de la requête via fetch pour récupérer les informations de l'employé connecté
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {
@@ -365,18 +392,19 @@
         })
         .then(response => 
         {
-          this.likedPost.length = 0;
-          let employee = this.formatEmployee(response.employee);
-          this.userName = employee.first_name + " " + employee.last_name;
+          this.likedPost.length = 0; // Nettoyage du tableau de post aimé par l'employé
+          let employee = this.formatEmployee(response.employee); // Formattage des données issues de la BDD
+          this.userName = employee.first_name + " " + employee.last_name; // Création du user name en fonction du prénom et nom
           this.avatar = employee.avatar;
-          this.isAdmin = (employee.is_admin.data[0])?true:false;
+          this.isAdmin = (employee.is_admin.data[0])?true:false; // Création de l'information si l'employé est admin ou non
           for (let likedPost of employee.likedPosts)
           {
-            this.likedPost.push(likedPost.post_id);
+            this.likedPost.push(likedPost.post_id); // Création du tableau de posts likés par l'employé
           }
         })
         .catch(error => alert(error));
       },
+      // Cette fonction formatte les informations issues de la BDD
       formatEmployee(employeeRaw)
       {
         let formattedEmployee = employeeRaw;
@@ -388,6 +416,7 @@
           formattedEmployee.team = "Non renseigné";
         return formattedEmployee;
       },
+      // Cette fonction gère l'envoi d'un post à la BDD
       publishPost()
       {
         let responseStatus;
@@ -398,6 +427,7 @@
         let options = {};
         if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
         {
+          // Création d'un formData pour encapsuler l'image
           const formData = new FormData();
           formData.append('employeeId', this.lsEmpId);
           formData.append('message', postContent);
@@ -406,8 +436,7 @@
           {
               method: 'post',
               headers: {
-                // 'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+                'Authorization': 'Bearer ' + this.lsAuth
               },
               body: formData // Remplissage du body de la requête avec les informations nécessaires
           };
@@ -419,27 +448,30 @@
               method: 'post',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+                'Authorization': 'Bearer ' + this.lsAuth
               },
               body: JSON.stringify({  employeeId : this.lsEmpId,
                                       message : postContent }) // Remplissage du body de la requête avec les informations nécessaires
           };
         }
-        // Envoi de la requête via fetch pour s'enregistrer
+        // Envoi de la requête via fetch pour enregistrer un post
         fetch('http://localhost:3000/api/post/save', options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then(response =>
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
 
+          // Création d'un objet contenant le nouveau post
           let newPost = {};
           if (formInputs[0].files.length !== 0)
           {
@@ -465,14 +497,15 @@
                       text :response.content,
                       nbLikes: 0};
           }
-          newPost.comments = [];
+          newPost.comments = []; // Création d'un tableau vide de commentaires pour ce nouveau post
           
-          this.feedPosts.unshift(newPost);
+          this.feedPosts.unshift(newPost); // Ajout du nouveau post au tableau de posts
+          // Emission d'une socket pour prévenir les autres employée de l'arrivée d'un nouveau post
           this.socket.emit('newPostSocketEmit', { ...newPost });
-          document.getElementById("newPost").value = '';
+          document.getElementById("newPost").value = ''; // Suppression du contenu du post
           if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
           {
-            formInputs[0].value = null;
+            formInputs[0].value = null; // Suppression du contenu de l'image
           }
           // Récupération de la div html contenant la prévisualisation
           let picturePreview = document.getElementById("imagePreview");
@@ -483,29 +516,33 @@
         })
         .catch(error => alert(error))
       },
+      // Cette fonction gère la modification du like
       likeMessage(postId, indexPost)
       {
         let responseStatus;
         let responseOk;
+        // Initialisation des options de la méthode fetch
         let options = 
         {
             method: 'post',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
             body: JSON.stringify({  employeeId : this.lsEmpId }) // Remplissage du body de la requête avec les informations nécessaires
         };
-        // Envoi de la requête via fetch pour s'enregistrer
+        // Envoi de la requête via fetch pour aimer/désaimer le post
         fetch('http://localhost:3000/api/post/like/'+ postId, options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then ((response)=>
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
@@ -530,11 +567,12 @@
             // Mise à jour du nombre de likes du post courant
             this.feedPosts[indexPost].nbLikes--;
           }
-          document.getElementById("newPost").value = '';
+          // Emission de la socket pour prévenir les autres employés d'un changement de like
           this.socket.emit('likeSocketEmit', {like: response.like, idPost: postId});
         })
         .catch(error => alert(error))
       },
+      // Fonction gérant la suppression d'un message
       setIsDeleteMessageNeeded(messageId, value)
       {
         if (value === false)
@@ -544,6 +582,7 @@
         }
         this.mapDeletedMessage.set(messageId, value);
       },
+      // Cette fonction gère la suppression d'un message, qu'il soit commentaire ou post
       deleteMessage(messageId, indexPost, messageType, indexComment = -1)
       {
         // Initialisation des options de la méthode fetch
@@ -552,10 +591,10 @@
             method: 'delete',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             }
         };
-        // Envoi de la requête via fetch pour s'enregistrer
+        // Envoi de la requête via fetch pour supprimer un post/commentaire
         fetch('http://localhost:3000/api/post/' + messageId, options)
         .then(response =>
         {
@@ -576,7 +615,7 @@
           if (messageType === 'post')
           {
             // Suppression d'un post
-            this.feedPosts.splice(indexPost, 1); // Suppression du post
+            this.feedPosts.splice(indexPost, 1);
           }
           else if (messageType === 'comment')
           {
@@ -588,41 +627,47 @@
           {
             alert('Mauvaise valeur de type de message');
           }
+          // Envoi d'une socket pour prévenir les autres employés de la suppression d'un message
           this.socket.emit('deleteSocketEmit', { idMessage: messageId, isComment: isComment });
         })
         .catch(error => alert(error))
       },
+      // Cette fonction gère la publication d'un commentaire
       publishComment(post_id, post_index)
       {
         let responseStatus;
         let responseOk;
         let commentContent = document.querySelectorAll("form input")[post_index].value;
+        // Initialisation des options de la méthode fetch
         let options = 
         {
             method: 'post',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.lsAuth est recupere du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
             body: JSON.stringify({  employeeId : this.lsEmpId,
                                     message : commentContent,
                                     postId : post_id}) // Remplissage du body de la requête avec les informations nécessaires
         };
-        // Envoi de la requête via fetch pour s'enregistrer
+        // Envoi de la requête via fetch pour enregistrer un nouveau commentaire
         fetch('http://localhost:3000/api/post/save', options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then(response =>
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
-          document.querySelectorAll("form input")[post_index].value = '';
+          document.querySelectorAll("form input")[post_index].value = ''; // Nettoyage du champ du commentaire
+          // Création de l'objet contenant le nouveau commentaire
           let newComment = {id: response.id,
                             employee_id: this.lsEmpId,
                             first_name: this.userName.split(' ')[0],
@@ -630,24 +675,26 @@
                             avatar: this.avatar,
                             formatedDate: response.date,
                             text :response.content};
-          this.feedPosts[post_index].comments.push(newComment);
+          this.feedPosts[post_index].comments.push(newComment); // Ajout du commentaire au tableau de commentaires du post adéquat
+          // Emission de la socket pour prévenir les autres employés de la création d'un nouveau commentaire
           this.socket.emit('newCommentSocketEmit', { postId: post_id, comment: newComment });
         })
         .catch(error => alert(error))
       },
+      // Cette fonction gère l'affichage de posts spécifiques. Cette fonction est utilisée lors de l'utilisation du champ de recherche
       printSpecificPosts(option)
       {
         let responseStatus;
         let responseOk;
         // Récupération de l'input html contenant le champ de recherche
-        let lastName = document.getElementById("searchLastName").value;
-        let firstName = document.getElementById("searchFirstName").value;
+        let lastName = document.getElementById("searchLastName").value; // Récupération du nom
+        let firstName = document.getElementById("searchFirstName").value; // Récupération du prénom
         if (lastName === '' && firstName === '' && option !== 'mine')
         {
           alert('Le champ est vide');
           return;
         }
-        if (option === 'mine')
+        if (option === 'mine') // L'employé souhaite voir ses posts
         {
           lastName = this.userName.split(' ')[1];
           firstName = this.userName.split(' ')[0];
@@ -658,19 +705,21 @@
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
         };
-        // Envoi de la requête via fetch pour récupérer les informations de l'utilisateur connecté
+        // Envoi de la requête via fetch pour récupérer les posts de l'employé sélectionné
         fetch('http://localhost:3000/api/post/search/' + lastName + '/' + firstName, options)
         .then(response =>
         {
+          // Récupération des status de la réponse pour être traités ensuite
           responseStatus = response.status;
           responseOk = response.ok;
           return response.json();
         })
         .then(response => 
         {
+          // Gestion et affichage des erreurs
           if (!(responseOk && (responseStatus >= 200 && responseStatus <= 299)))
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
@@ -686,11 +735,11 @@
             // On parcourt la liste des posts actuels
             for (let postId of response.postIds)
             {
-              for (let post of this.feedPosts)
+              for (let post of this.feedPosts) // On recherche si les posts de l'employé coïncident avec le post courant
               {
                 if (post.id === postId.id)
                 {
-                  this.searchFeedPosts.push(post);
+                  this.searchFeedPosts.push(post); // Stockage du post dans le tableau de posts recherchés
                 }
               }
             }
@@ -710,7 +759,9 @@
             }
           }
 
+          // Nettoyage du tableau de posts
           this.feedPosts.length = 0;
+          // Le tableau de post est rempli avec les posts recherchés
           for (let searchPost of this.searchFeedPosts)
           {
             this.feedPosts.push(searchPost);
@@ -723,19 +774,21 @@
         })
         .catch(error => alert(error));
       },
+      // Cette fonction supprime le filtre en cours
       reloadAllPosts(type = '')
       {
+        // Le filtre est supprimé si le champ de recherche est vidé ou si le bouton adéquat est appuyé
         let lastName = document.getElementById("searchLastName").value;
         let firstName = document.getElementById("searchFirstName").value;
         if (type === 'button' || (lastName === '' && firstName === ''))
         {
-          this.feedPosts.length = 0;
+          this.feedPosts.length = 0; // Nettoyage du tableau de posts
           for (let savedPost of this.historyFeedPosts)
           {
-            this.feedPosts.push(savedPost);
+            this.feedPosts.push(savedPost); // Recharge du tableau de posts avec les posts sauvegardés
           }
-          this.historyFeedPosts.length = 0;
-          this.isFilteredPostOnGoing = false;
+          this.historyFeedPosts.length = 0; // Nettoyage du tableau des posts sauvegardés
+          this.isFilteredPostOnGoing = false; // Fin du filtre des posts
           document.getElementById("searchLastName").value = '';
           document.getElementById("searchFirstName").value = '';
         }
@@ -860,19 +913,18 @@ h1 {
   margin-bottom:20px;
 }
 
-#posted {
+.posted {
   width:90%;
   border:1px solid;
   border-radius:10px;
   margin:auto;
   margin-bottom:50px;
+  &> div:first-child {
+    position:relative;
+  }
 }
 
-#posted > div:first-child {
-  position:relative;
-}
-
-#person_comments {
+.person_comments {
   font-size:0.8em;
   background-color:rgb(48,66,96);
   padding:0px 5px;
@@ -894,7 +946,7 @@ h1 {
   }
 }
 
-#postContent {
+.postContent {
   padding-left:10px;
   p {
     white-space: pre-wrap;
@@ -905,7 +957,7 @@ h1 {
   }
 }
 
-#icons {
+.icons {
   background-color:rgb(48,66,96);
   border:1px solid;
   color:white;
@@ -920,18 +972,18 @@ h1 {
   }
 }
 
-#comments {
+.comments {
   width:90%;
   padding-top:10px;
   margin:auto;
 }
 
-#commentsHead {
+.commentsHead {
   font-style:italic;
   color:rgb(48,66,96);
 }
 
-#fullComment > div:first-child{
+.fullComment > div:first-child{
   display:flex;
   p {
     word-wrap: break-word;
@@ -946,7 +998,7 @@ h1 {
   }
 }
 
-#commentsText {
+.commentsText {
   width:80%;
   margin:0px 0px 15px 10px;
   font-size:0.8em;
@@ -971,7 +1023,14 @@ h1 {
   display:flex;
 }
 
-#sendComment {
+// #sendComment {
+//   border-radius:5px 0px 0px 5px;
+//   padding:5px;
+//   margin-left:5px;
+//   width:80%;
+// }
+
+.inputComment {
   border-radius:5px 0px 0px 5px;
   padding:5px;
   margin-left:5px;
@@ -987,7 +1046,7 @@ button {
   outline:none;
 }
 
-#deletePostBox {
+.deletePostBox {
   background-color:rgb(217,217,217);
   position:absolute;
   width:200px;
@@ -1011,7 +1070,7 @@ button {
   }
 }
 
-#deleteCommentBox {
+.deleteCommentBox {
   border:1px solid black;
   width:95%;
   border-radius:5px;
@@ -1052,7 +1111,7 @@ button {
       background-color:rgb(238,241,247);
   }
 
-  #post, #posted {
+  #post, .posted {
     width:40%;
   }
 

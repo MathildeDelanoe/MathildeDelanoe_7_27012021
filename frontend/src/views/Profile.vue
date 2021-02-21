@@ -135,6 +135,7 @@
             'Authorization': 'Bearer ' + this.lsAuth , // this.auth est recupere du composant signup/login
           },
       };
+      // Envoi de la requête via fetch pour récupérer les informations de l'employé
       fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
       .then(response =>
       {
@@ -156,7 +157,7 @@
       })
       .catch(error => alert(error));
     },
-    unmouted()
+    beforeUnmount()
     {
       this.socket.close(); // Fermeture de la socket
     },
@@ -221,6 +222,7 @@
             },
             body: JSON.stringify({ ...passwords })
         };
+        // Envoi de la requête via fetch pour mettre à jour le mot de passe
         fetch('http://localhost:3000/api/employee/password/' + this.lsEmpId, options)
         .then(response =>
         {
@@ -264,6 +266,7 @@
               'Authorization': 'Bearer ' + this.lsAuth
             }
         };
+        // Envoi de la requête via fetch pour supprimer le compte de l'employé
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {
@@ -347,6 +350,7 @@
             body: JSON.stringify({ ...updatedProfile })
           };
         }
+ssss        // Envoi de la requête via fetch pour mettre à jour le profil de l'employé
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {

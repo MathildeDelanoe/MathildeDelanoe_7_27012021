@@ -203,7 +203,7 @@
             confPassword : formInputs[2].value,
         };
 
-        if (!formInputs[1].checkValidity()) // Si le nouveau mot de passe ne remplit pas les critères
+        if (!formInputs[1].checkValidity() || formInputs[1].value.length === 0) // Si le nouveau mot de passe ne remplit pas les critères ou est vide
         {
           alert('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial (!@#$&*), 1 chiffre et avoir 8 caractères minimum')
           return;

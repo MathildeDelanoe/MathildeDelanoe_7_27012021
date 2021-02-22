@@ -227,7 +227,7 @@ exports.login = (req, res, next) => {
     });
 };
 
-// Création du middleware de récupération des infos de l'utilisateur
+// Création du middleware de récupération des infos de l'employé + les likes
 exports.retrieveEmployeeInfo = (req, res, next) => {
     // Connexion à la base de données
     let connection = mysql.createConnection({

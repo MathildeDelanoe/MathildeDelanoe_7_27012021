@@ -65,9 +65,8 @@ const io = require('socket.io')(server, {
     methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS'
   }
 });
-// console.log(io)
+
 io.sockets.on('connection', (socket) => {
-  console.log('someone connected with sockedId = ' + socket.id)
   socket.on('likeSocketEmit', likeMessage => {
     socket.broadcast.emit('likeSocketBroadcast', {idPost: likeMessage.idPost,
                                                   like: likeMessage.like}); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
@@ -85,8 +84,10 @@ io.sockets.on('connection', (socket) => {
   socket.on('newAvatarSocketEmit', data => {
     socket.broadcast.emit('newAvatarSocketBroadcast', { ...data }); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
   });
+  socket.on('deleteAccountSocketEmit', data => {
+    socket.broadcast.emit('deleteAccountSocketBroadcast', { ...data }); // Broadcast pour mettre à jour le panel de tous les utilisateurs connectés
+  });
   socket.on('disconnect', () => {
-    console.log('someone disconnected')
   });
 });
 

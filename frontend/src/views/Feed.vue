@@ -31,13 +31,16 @@
         <button @click="printSpecificPosts('mine')">Mes posts</button>
       </div>
     </div>
-    <!-- Nombre de posts trouvés et retour aux postes -->
+    <!-- Nombre de posts trouvés et retour aux posts -->
     <div id="FilteredPost" v-if="this.isFilteredPostOnGoing">
       <p>{{ this.feedPosts.length }} {{ (this.feedPosts.length > 1)?"posts ont été trouvés":"post a été trouvé" }}.</p>
       <button @click="reloadAllPosts('button')" id="buttonReturnPost">Retour aux posts</button>
     </div>
     <!-- Représente les publications postées -->
-    <div class="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
+    <div id="noPost" v-if="feedPosts.length === 0 && !this.isFilteredPostOnGoing">
+      <p>Aucune publication postée!</p>
+    </div>
+    <div v-else class="posted" v-for="(singlePost, indexPost) in feedPosts" :key="singlePost">
       <div>
         <!-- Les infos des personnes qui ont postés -->
         <div class="person_comments">
@@ -80,7 +83,7 @@
             </div>
             <p v-if="singleComment.employee_id==this.lsEmpId || this.isAdmin===true" @click="setIsDeleteMessageNeeded(singleComment.id, true)"><font-awesome-icon :icon="['fas', 'trash']" /></p>
           </div>
-          <!-- Pour supprimer un commentaire déjà postés-->
+          <!-- Pour supprimer un commentaire -->
           <div class="deleteCommentBox" v-if="mapDeletedMessage.has(singleComment.id) && mapDeletedMessage.get(singleComment.id)==true">
             <p>Voulez-vous vraiment supprimer votre commentaire?</p>
             <div>
@@ -136,8 +139,6 @@
         searchFeedPosts: [],
         historyFeedPosts: [],
         isFilteredPostOnGoing: false,
-        avatarPosted: '',
-        datePosted: '',
         mapDeletedMessage : new Map(),
         lsAuth: '',
         lsEmpId: '',
@@ -150,11 +151,9 @@
       // A la création de l'instance, si ce n'est pas déjà fait, on crée une socket pour gérer la mise à jour automatique de changements
       if (this.socket === null)
       {
+        // Initialisation de la socket en précisant le domaine du serveur
         this.socket = io('http://localhost:3000', { autoConnect: false });
-        this.socket.onAny((event, ...args) => {
-          console.log(event, args);
-        });
-        this.socket.connect(); // Connect to the socket
+        this.socket.connect(); // Connexion à la socket
       }
     },
     mounted(){
@@ -280,6 +279,40 @@
           }
         }
       });
+      this.socket.on('deleteAccountSocketBroadcast', data => {
+        let indexPost = -1;
+        // Parcours du tableau de posts pour supprimer les commentaires et diminuer le nb de likes des posts
+        for (let post of this.feedPosts)
+        {
+          ++indexPost;
+          if (data.likedPosts.includes(post.id))
+          {
+            post.nbLikes--;
+          }
+          
+          let indexCommentaire = -1;
+          for (let comment of post.comments) // Parcours du tableau de commentaires du post courante
+          {
+            ++indexCommentaire;
+            if (data.employeeId == comment.employee_id)
+            {
+              // Ce commentaire a été écrit par l'employé qui a supprimé son compte => Nécessité d'enlever le commentaire à l'index indexCommentaire
+              post.comments.splice(indexCommentaire, 1);
+            }
+          }
+        }
+        // Parcours des posts pour supprimer les posts écrits par l'employé supprimé
+        indexPost = -1;
+        for (let post of this.feedPosts)
+        {
+          ++indexPost;
+          if (data.employeeId == post.employee_id)
+          {
+            // Ce post a été écrit par l'employé qui a supprimé son compte => Nécessité d'enlever le post à l'index indexPost
+            this.feedPosts.splice(indexPost, 1);
+          }
+        }
+      });
     },
     beforeUnmount()
     {
@@ -311,7 +344,7 @@
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
         };
         // Envoi de la requête via fetch pour récupérer tous les commentaires du post courant
@@ -328,7 +361,7 @@
         }
         return post;
       },
-      // Cette fonction permet de récupérer tous les posts présents dans la base de données
+      // Cette fonction permet de récupérer tous les posts présents dans la base de données, et leurs commentaires
       getPosts(){
         this.feedPosts.length = 0; // Nécessité de vider le tableau de posts
         // Initialisation des options de la méthode fetch
@@ -337,7 +370,7 @@
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
         };
         // Envoi de la requête via fetch pour récupérer tous les posts
@@ -355,12 +388,13 @@
         })
         .then(async response => 
         {
+          // response contient un tableau de posts
           for (let post of response.posts) // Parcours des posts de la BDD
           {
             // Pour chaque post, récupération des commentaires et attente de la réception de chacun avant de passer au post suivant
             await this.fetchComments(post)
             .then(post => {
-              this.feedPosts.push(post); // Ajoute du post au tableau de posts
+              this.feedPosts.push(post); // Ajout du post au tableau de posts
             });
           }
         })
@@ -374,7 +408,7 @@
             method: 'get',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + this.lsAuth, // this.auth est récupéré du composant signup/login
+              'Authorization': 'Bearer ' + this.lsAuth
             },
         };
         // Envoi de la requête via fetch pour récupérer les informations de l'employé connecté
@@ -393,28 +427,19 @@
         .then(response => 
         {
           this.likedPost.length = 0; // Nettoyage du tableau de post aimé par l'employé
-          let employee = this.formatEmployee(response.employee); // Formattage des données issues de la BDD
+          // Traitement des informations reçus de la bdd et stockage dans l'instance vue
+          let employee = response.employee;
+          employee.avatar = (employee.avatar === null)?"": employee.avatar; // Si l'avatar issu de la bdd est null, on remplace par une chaîne vide
           this.userName = employee.first_name + " " + employee.last_name; // Création du user name en fonction du prénom et nom
           this.avatar = employee.avatar;
           this.isAdmin = (employee.is_admin.data[0])?true:false; // Création de l'information si l'employé est admin ou non
           for (let likedPost of employee.likedPosts)
           {
-            this.likedPost.push(likedPost.post_id); // Création du tableau de posts likés par l'employé
+            // Remplissage du tableau de posts likés par l'employé
+            this.likedPost.push(likedPost.post_id);
           }
         })
         .catch(error => alert(error));
-      },
-      // Cette fonction formatte les informations issues de la BDD
-      formatEmployee(employeeRaw)
-      {
-        let formattedEmployee = employeeRaw;
-        if (formattedEmployee.avatar === null)
-          formattedEmployee.avatar = "";
-        if (formattedEmployee.job === null)
-          formattedEmployee.job = "Non renseigné";
-        if (formattedEmployee.team === null)
-          formattedEmployee.team = "Non renseigné";
-        return formattedEmployee;
       },
       // Cette fonction gère l'envoi d'un post à la BDD
       publishPost()
@@ -475,6 +500,7 @@
           let newPost = {};
           if (formInputs[0].files.length !== 0)
           {
+            // Si le post contient une image
             newPost = {id: response.id,
                       employee_id: this.lsEmpId,
                       first_name: this.userName.split(' ')[0],
@@ -487,6 +513,7 @@
           }
           else
           {
+            // Si le post ne contient que du texte
             newPost = {id: response.id,
                       employee_id: this.lsEmpId,
                       first_name: this.userName.split(' ')[0],
@@ -498,10 +525,12 @@
                       nbLikes: 0};
           }
           newPost.comments = []; // Création d'un tableau vide de commentaires pour ce nouveau post
+          this.feedPosts.unshift(newPost); // Ajout du nouveau post au tableau de posts de l'instance Vue
           
-          this.feedPosts.unshift(newPost); // Ajout du nouveau post au tableau de posts
           // Emission d'une socket pour prévenir les autres employée de l'arrivée d'un nouveau post
           this.socket.emit('newPostSocketEmit', { ...newPost });
+          
+          // Suppression des entrées de formulaires
           document.getElementById("newPost").value = ''; // Suppression du contenu du post
           if (formInputs[0].files.length !== 0) // Une image sera envoyée avec le post
           {
@@ -516,6 +545,7 @@
         })
         .catch(error => alert(error))
       },
+
       // Cette fonction gère la modification du like
       likeMessage(postId, indexPost)
       {
@@ -547,17 +577,15 @@
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
-          if (response.like)
+          if (response.like) // Si l'employé aime le post
           {
-            // Si l'employé aime le post
             // Mise à jour du tableau de like de l'employé courant en rajoutant le post dans le tableau de like
             this.likedPost.push(postId);
             // Mise à jour du nombre de likes du post courant
             this.feedPosts[indexPost].nbLikes++;
           }
-          else
+          else // Si l'employé n'aime plus le post
           {
-            // Si l'employé n'aime plus post
             // Mise à jour du tableau de like de l'employé courant en supprimant le post dans le tableau de like
             const index = this.likedPost.indexOf(postId); // Recherche de l'index du tableau où le postId se trouve
             if (index > -1) // Normalement, cette condition est toujours vraie
@@ -572,7 +600,8 @@
         })
         .catch(error => alert(error))
       },
-      // Fonction gérant la suppression d'un message
+
+      // Fonction qui met à jour une map indiquant que l'employé veut supprimer un message
       setIsDeleteMessageNeeded(messageId, value)
       {
         if (value === false)
@@ -582,6 +611,7 @@
         }
         this.mapDeletedMessage.set(messageId, value);
       },
+
       // Cette fonction gère la suppression d'un message, qu'il soit commentaire ou post
       deleteMessage(messageId, indexPost, messageType, indexComment = -1)
       {
@@ -610,8 +640,10 @@
         .then(response =>
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un message a été supprimé!");
-          this.setIsDeleteMessageNeeded(messageId, false);
-          let isComment = false;
+          this.setIsDeleteMessageNeeded(messageId, false); // Suppression de l'indication que le message doit être supprimé
+
+          
+          let isComment = false; // Préparation pour l'émission de la socket
           if (messageType === 'post')
           {
             // Suppression d'un post
@@ -627,6 +659,7 @@
           {
             alert('Mauvaise valeur de type de message');
           }
+
           // Envoi d'une socket pour prévenir les autres employés de la suppression d'un message
           this.socket.emit('deleteSocketEmit', { idMessage: messageId, isComment: isComment });
         })
@@ -666,7 +699,10 @@
           {
             throw new Error(CommonFunctions.errorManagement(responseStatus, response.errorMessage));
           }
-          document.querySelectorAll("form input")[post_index].value = ''; // Nettoyage du champ du commentaire
+
+          // Nettoyage du formulaire de saisie du commentaire
+          document.querySelectorAll("form input")[post_index].value = '';
+
           // Création de l'objet contenant le nouveau commentaire
           let newComment = {id: response.id,
                             employee_id: this.lsEmpId,
@@ -676,6 +712,7 @@
                             formatedDate: response.date,
                             text :response.content};
           this.feedPosts[post_index].comments.push(newComment); // Ajout du commentaire au tableau de commentaires du post adéquat
+
           // Emission de la socket pour prévenir les autres employés de la création d'un nouveau commentaire
           this.socket.emit('newCommentSocketEmit', { postId: post_id, comment: newComment });
         })
@@ -689,6 +726,7 @@
         // Récupération de l'input html contenant le champ de recherche
         let lastName = document.getElementById("searchLastName").value; // Récupération du nom
         let firstName = document.getElementById("searchFirstName").value; // Récupération du prénom
+        // Vérification que les champs de recherche ne sont pas vides
         if (lastName === '' && firstName === '' && option !== 'mine')
         {
           alert('Le champ est vide');
@@ -727,16 +765,17 @@
 
           if (!this.isFilteredPostOnGoing)
           {
-            // S'il n'y a aucun filtre sur les posts appliqués, on stocke les posts actuels
+            // S'il n'y a aucun filtre sur les posts appliqués, on stocke les posts actuels pour pouvoir les recharger au moment opportun
             for (let post of this.feedPosts)
             {
               this.historyFeedPosts.push(post);
             }
-            // On parcourt la liste des posts actuels
+            // On parcourt la liste des posts id retournées par la requête
             for (let postId of response.postIds)
             {
-              for (let post of this.feedPosts) // On recherche si les posts de l'employé coïncident avec le post courant
+              for (let post of this.feedPosts) // Parcours des posts actuels
               {
+                // On recherche si les posts de l'employé coïncident avec le post courant
                 if (post.id === postId.id)
                 {
                   this.searchFeedPosts.push(post); // Stockage du post dans le tableau de posts recherchés
@@ -746,14 +785,15 @@
           }
           else
           {
-            // Si un filtre est déjà présent, nous utilisons le tableau de posts sauvegardés
-            for (let postId of response.postIds)
+            // Si un filtre est déjà présent, nous utilisons le tableau de posts sauvegardés pour la recherche
+            for (let postId of response.postIds) // On parcourt la liste des posts id retournées par la requête
             {
-              for (let post of this.historyFeedPosts)
+              for (let post of this.historyFeedPosts) // Parcours des posts sauvegardés qui correspondent au contenu de la bdd
               {
+                // On recherche si les posts de l'employé coïncident avec le post courant
                 if (post.id === postId.id)
                 {
-                  this.searchFeedPosts.push(post);
+                  this.searchFeedPosts.push(post); // Stockage du post dans le tableau de posts recherchés
                 }
               }
             }
@@ -766,15 +806,15 @@
           {
             this.feedPosts.push(searchPost);
           }
-          this.searchFeedPosts.length = 0;
+          this.searchFeedPosts.length = 0; // Suppression du tableau de recherche une fois que les posts sont chargés
           if (!this.isFilteredPostOnGoing)
           {
-            this.isFilteredPostOnGoing = true;
+            this.isFilteredPostOnGoing = true; // Mise en place du filtre des posts
           }
         })
         .catch(error => alert(error));
       },
-      // Cette fonction supprime le filtre en cours
+      // Cette fonction supprime le filtre des posts en cours
       reloadAllPosts(type = '')
       {
         // Le filtre est supprimé si le champ de recherche est vidé ou si le bouton adéquat est appuyé
@@ -802,6 +842,12 @@ h1 {
   margin-left:40px;
   margin-top:30px;
   font-size:1.5em;
+}
+
+#noPost {
+  text-align: center;
+  font-weight: bold;
+  font-size: 2em;
 }
 
 #post {

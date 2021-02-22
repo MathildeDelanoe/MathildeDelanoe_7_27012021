@@ -98,15 +98,13 @@
         isDeletedAccount: false,
         isUpdatePassword: false,
         lsAuth: '',
-        lsEmpId: ''
+        lsEmpId: '',
+        likedPost: []
       };
     },
     created()
     {
       this.socket = io('http://localhost:3000', { autoConnect: false });
-      this.socket.onAny((event, ...args) => {
-        console.log(event, args);
-      });
       this.socket.connect(); // Connect to the socket
     },
     mounted()
@@ -152,6 +150,10 @@
       {
         // Formattage des données de l'employé
         this.employee = this.formatEmployee(response.employee);
+        for (let likedPost of this.employee.likedPosts)
+        {
+          this.likedPost.push(likedPost.post_id); // Création du tableau de posts likés par l'employé
+        }
         this.userName = this.employee.first_name + " " + this.employee.last_name;
         this.avatar = this.employee.avatar;
       })
@@ -206,6 +208,11 @@
           alert('Votre mot de passe doit contenir 1 minuscule, 1 majuscule, 1 caractère spécial (!@#$&*), 1 chiffre et avoir 8 caractères minimum')
           return;
         }
+        if (passwords.newPassword === passwords.oldPassword) // Si le nouveau mot de passe et l'ancien sont identiques
+        {
+          alert('Le nouveau mot de passe est identique à l\'ancien!')
+          return;
+        }
         if (passwords.newPassword !== passwords.confPassword) // Si les mots de passe diffèrent
         {
           alert('Les deux nouveaux mots de passes sont différents!')
@@ -241,6 +248,7 @@
           // Une fois la modification effectuée, nous pouvons cacher de nouveau le formulaire correspondant
           // en remettant le booléen correspondant à 'false'
           this.unsetIsUpdatePassword();
+          alert('Votre mot de passe a été correctement changé')
         })
         .catch(error => alert(error));
       },
@@ -283,6 +291,8 @@
         {
           if (response.deletionNumber != 1) throw new Error("plus d'un employé a été supprimé!");
           localStorage.clear(); // Suppression des identifiants de l'employé du LS pour close la session
+          this.socket.emit('deleteAccountSocketEmit', { employeeId: this.lsEmpId,
+                                                        likedPosts: this.likedPost });
           this.$router.push({ name: 'Signup' }); // Redirection vers la page de signup
         })
         .catch(error => alert(error));
@@ -350,7 +360,7 @@
             body: JSON.stringify({ ...updatedProfile })
           };
         }
-ssss        // Envoi de la requête via fetch pour mettre à jour le profil de l'employé
+        // Envoi de la requête via fetch pour mettre à jour le profil de l'employé
         fetch('http://localhost:3000/api/employee/' + this.lsEmpId, options)
         .then(response =>
         {

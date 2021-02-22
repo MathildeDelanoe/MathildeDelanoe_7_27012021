@@ -281,6 +281,7 @@
       });
       this.socket.on('deleteAccountSocketBroadcast', data => {
         let indexPost = -1;
+        let indexesToRemove = [];
         // Parcours du tableau de posts pour supprimer les commentaires et diminuer le nb de likes des posts
         for (let post of this.feedPosts)
         {
@@ -291,26 +292,38 @@
           }
           
           let indexCommentaire = -1;
+          // Pour supprimer les commentaires, nous chercons d'abord les index des commentaires concernés, puis supprimons ses index un à un en partant par la fin
           for (let comment of post.comments) // Parcours du tableau de commentaires du post courante
           {
             ++indexCommentaire;
             if (data.employeeId == comment.employee_id)
             {
-              // Ce commentaire a été écrit par l'employé qui a supprimé son compte => Nécessité d'enlever le commentaire à l'index indexCommentaire
-              post.comments.splice(indexCommentaire, 1);
+              // Ce commentaire a été écrit par l'employé qui a supprimé son compte => Nécessité d'ajouter l'index au tableau d'index à supprimer
+              indexesToRemove.push(indexCommentaire);
             }
+          }
+          // A la fin du parcours de tous les commentaires du post courant, nous pouvons supprimer les commentaires en commencant par le dernier pour ne pas changer les index
+          for (let i = (indexesToRemove.length - 1); i >= 0; --i)
+          {
+            post.comments.splice(i, 1);
           }
         }
         // Parcours des posts pour supprimer les posts écrits par l'employé supprimé
         indexPost = -1;
+        indexesToRemove.length = 0;
         for (let post of this.feedPosts)
         {
           ++indexPost;
           if (data.employeeId == post.employee_id)
           {
-            // Ce post a été écrit par l'employé qui a supprimé son compte => Nécessité d'enlever le post à l'index indexPost
-            this.feedPosts.splice(indexPost, 1);
+            // Ce post a été écrit par l'employé qui a supprimé son compte => Nécessité d'ajouter l'index au tableau d'index à supprimer
+            indexesToRemove.push(indexPost);
           }
+        }
+        // A la fin du parcours de tous les posts, nous pouvons supprimer les posts en commencant par le dernier pour ne pas changer les index
+        for (let i = (indexesToRemove.length - 1); i >= 0; --i)
+        {
+          this.feedPosts.splice(i, 1);
         }
       });
     },

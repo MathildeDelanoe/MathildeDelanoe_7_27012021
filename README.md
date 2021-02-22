@@ -13,7 +13,7 @@ A l'issue de cette étape, la console affiche un message "App running at: - Loca
 L'application sera alors accessible depuis n'importe quel navigateur à l'url indiquée
 
 ### Lancement du backend
-* Se rendre dans le dossier frontend
+* Se rendre dans le dossier backend
 * Lancer la commande "npm install"
 * Pour lancer le serveur, executer "nodemon server"
 

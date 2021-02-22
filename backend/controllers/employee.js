@@ -25,7 +25,10 @@ schema
   .has().symbols(1)
   .has().not().spaces();
 
-
+/* Cette fonction permet de formatter les entrées de la base de données.
+   Chaque chaîne de caractères est écrite en minuscules puis chaque première lettre
+   est passée en majuscules
+*/
 function formatDatabaseInput(dataIn)
 {
     let lowercase = dataIn.toLowerCase(); // Met la chaîne en minuscules
@@ -42,7 +45,7 @@ function formatDatabaseInput(dataIn)
 function checkPassword(password)
 {
     return new Promise((resolve, reject) => {
-        if (schema.validate(password))
+        if (schema.validate(password)) // Est-ce que le schéma défini est respecté
         {
             resolve(true);
         }
@@ -54,7 +57,7 @@ function checkPassword(password)
 }
 
 /* Fonction de vérification de l'adresse email
- La fonction prend en argument une chaine de caractères représentant une adresse email
+ La fonction prend en argument une chaîne de caractères représentant une adresse email
  Elle renvoie une promesse :
     - résolue si l'email est conforme à l'expression régulière définie
     - rejetée si l'email diffère du format attendu
@@ -227,7 +230,7 @@ exports.login = (req, res, next) => {
     });
 };
 
-// Création du middleware de récupération des infos de l'employé + les likes
+// Création du middleware de récupération des infos de l'employé + ses likes
 exports.retrieveEmployeeInfo = (req, res, next) => {
     // Connexion à la base de données
     let connection = mysql.createConnection({
@@ -320,7 +323,7 @@ exports.updateEmployee = (req, res, next) => {
         sqlQuery += "', team = '";
         sqlQuery += team;
         sqlQuery += "'";
-        if (req.file)
+        if (req.file) // Si la modification de profil entraîne une modification d'avatar
         {
             sqlQuery += ", avatar = '";
             sqlQuery += `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
@@ -359,8 +362,9 @@ exports.updateEmployee = (req, res, next) => {
         connection.query(sqlQuery + " WHERE id=?;", req.params.id, (error, result) => {
             if (error) throw new Error(error);
             connection.end();
-            if (req.file)
+            if (req.file) // Si l'avatar est modifié
             {
+                // Le chemin de l'avatar est retourné au frontend
                 return res.status(200).json({ updatedNumber: result.affectedRows,
                                               filename: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
                                             });
@@ -409,7 +413,7 @@ exports.updatePassword = (req, res, next) => {
                     let sqlQuery = "UPDATE employees SET password='";
                     sqlQuery += hash;
                     sqlQuery += "'";
-                    // Traitement de la requête SQL
+                    // Traitement de la requête SQL de mise à jour de l'employé
                     connection.query(sqlQuery + ' WHERE id=?', req.params.id, (error) => {
                         if (error) throw new Error(error);
                         connection.end();

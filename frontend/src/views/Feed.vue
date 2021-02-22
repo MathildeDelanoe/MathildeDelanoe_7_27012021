@@ -22,9 +22,9 @@
       <div id="testPost">
         <div>
           <font-awesome-icon :icon="['fas', 'search']"/>
-          <label for="searchLastName"></label>
+          <label for="searchLastName">LastName</label>
           <input type="search" id="searchLastName" name="q" placeholder="Nom" aria-label="Recherche dans les posts par Nom" @change="reloadAllPosts">
-          <label for="searchFirstName"></label>
+          <label for="searchFirstName">FirstName</label>
           <input type="search" id="searchFirstName" name="q" placeholder="Prénom" aria-label="Recherche dans les posts par Prénom" @change="reloadAllPosts"> 
           <button @click="printSpecificPosts()" id="buttonSearch">Rechercher</button>
         </div>
@@ -876,7 +876,6 @@ h1 {
   }
 
   textarea {
-    // border-radius:2%;
     width:100%;
     height:200px;
     border:1px solid grey;
@@ -894,12 +893,12 @@ h1 {
       background-color:rgb(48,66,96);
       color: white;
       border:none;
-      cursor:pointer;
   }
 
   .label-file {
     font-weight: normal;
     font-size:0.8em;
+    cursor:pointer;
   }
 
   .input-file {
@@ -923,7 +922,6 @@ h1 {
 }
 
 #searchPerson {
-  // border:1px solid purple;
   p:first-child {
     width:70%;
     font-weight:bold;
@@ -932,16 +930,17 @@ h1 {
     display:flex;
     flex-direction: column;
     margin-bottom:30px;
-    // border:1px solid green;
-    // flex-wrap: wrap;
     
     div {
       width:80%;
       display: flex;
       margin-bottom:10px;
     }
-    &>button{
-      // width:15%;
+    // button {
+    //   cursor:pointer;
+    // }
+    label {
+      display:none;
     }
   } 
   .fa-search {
@@ -964,12 +963,12 @@ h1 {
 
 #searchFirstName, #searchLastName {
     width:40%;
-    // border:1px solid
   }
 
 #buttonReturnPost {
   border-radius:5px;
   margin-bottom:20px;
+  // cursor: pointer;
 }
 
 .posted {
@@ -1082,13 +1081,6 @@ h1 {
   display:flex;
 }
 
-// #sendComment {
-//   border-radius:5px 0px 0px 5px;
-//   padding:5px;
-//   margin-left:5px;
-//   width:80%;
-// }
-
 .inputComment {
   border-radius:5px 0px 0px 5px;
   padding:5px;
@@ -1103,6 +1095,7 @@ button {
   border-radius:0px 5px 5px 0px;
   padding:5px;
   outline:none;
+  cursor: pointer;
 }
 
 .deletePostBox {
@@ -1124,7 +1117,7 @@ button {
     justify-content:space-between;
   }
   button {
-    cursor:pointer;
+    // cursor:pointer;
     border-radius:5px;
   }
 }
@@ -1147,7 +1140,7 @@ button {
     justify-content:space-between;
   }
   button {
-    cursor:pointer;
+    // cursor:pointer;
     border-radius:5px;
   }
 }
@@ -1194,6 +1187,5 @@ button {
 }
 
 }
-
 
 </style>

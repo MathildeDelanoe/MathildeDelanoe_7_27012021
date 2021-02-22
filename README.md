@@ -8,7 +8,8 @@ Cloner ce repository
 * Executer la commande "npm install"
 * Executer "npm run serve"
 
-A l'issue de cette étape, la console affiche un message "App running at: - Local:  http://localhost:8080/
+A l'issue de cette étape, la console affiche un message "App running at: - Local:  http://localhost:8080/ 
+
 L'application sera alors accessible depuis n'importe quel navigateur à l'url indiquée
 
 ### Lancement du backend
